@@ -8,12 +8,16 @@ utils\XJPA.class
 entity\Favorite.class
 servlet\LoginServlet.class
 entity\User.class
+servlet\DetailServlet.class
 utils\Mailer$1.class
 dao\FavoriteDAO.class
 servlet\HomeServlet.class
+utils\OMDbClient.class
 dao\UserDAO.class
+utils\VidSrcUtil.class
 servlet\RegisterServlet.class
 dao\ShareDAOImpl.class
+servlet\AdminServlet.class
 dao\UserDAOImpl.class
 dao\VideoDAOImpl.class
 dao\VideoDAO.class

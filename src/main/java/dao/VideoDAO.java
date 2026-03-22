@@ -11,6 +11,8 @@ public interface VideoDAO {
 
     Video findById(Long id);
 
+    Video findByImdbId(String imdbId);  // thêm mới
+
     void create(Video video);
 
     void update(Video video);

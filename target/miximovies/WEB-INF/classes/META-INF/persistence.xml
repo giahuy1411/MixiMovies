@@ -3,10 +3,10 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence
              http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd" version="2.2">
 
-    <persistence-unit name="PolyASM">
+    <persistence-unit name="MovieDB">
         <properties>
             <property name="javax.persistence.jdbc.driver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
-            <property name="javax.persistence.jdbc.url" value="jdbc:sqlserver://localhost:1433;databaseName=XemPhim;encrypt=true;trustServerCertificate=true"/>
+            <property name="javax.persistence.jdbc.url" value="jdbc:sqlserver://localhost:1433;databaseName=MovieDB;encrypt=true;trustServerCertificate=true"/>
             <property name="javax.persistence.jdbc.user" value="huy"/>
             <property name="javax.persistence.jdbc.password" value="141108"/>
 

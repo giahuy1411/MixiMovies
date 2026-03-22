@@ -9,7 +9,7 @@ public class XJPA {
 
     static {
         try {
-            factory = Persistence.createEntityManagerFactory("PolyASM");
+            factory = Persistence.createEntityManagerFactory("MovieDB");
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("LỖI KHỞI TẠO KẾT NỐI: " + e.getMessage());

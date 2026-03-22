@@ -1,6 +1,7 @@
 package entity;
 
 import javax.persistence.*;
+import utils.VidSrcUtil;
 
 @Entity
 @Table(name = "Videos")
@@ -14,6 +15,9 @@ public class Video {
     @Column(name = "Title", nullable = false)
     private String title;
 
+    @Column(name = "Poster")
+    private String poster;
+
     @Column(name = "Description")
     private String description;
 
@@ -23,9 +27,29 @@ public class Video {
     @Column(name = "Active")
     private Boolean active = true;
 
-    @Column(name = "VideoUrl", nullable = false)
-    private String videoUrl;
+    // Các cột mới thêm từ OMDb
+    @Column(name = "ImdbId", unique = true)
+    private String imdbId;
 
+    @Column(name = "Year")
+    private Integer year;
+
+    @Column(name = "Director")
+    private String director;
+
+    @Column(name = "Actors")
+    private String actors;
+
+    @Column(name = "Genre")
+    private String genre;
+
+    @Column(name = "ImdbRating")
+    private Double imdbRating;
+
+    public Video() {
+    }
+
+    // Getters & Setters (giữ lại hết, trừ videoUrl)
     public Long getId() {
         return id;
     }
@@ -40,6 +64,14 @@ public class Video {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getPoster() {
+        return poster;
+    }
+
+    public void setPoster(String poster) {
+        this.poster = poster;
     }
 
     public String getDescription() {
@@ -66,36 +98,57 @@ public class Video {
         this.active = active;
     }
 
-    public String getVideoUrl() {
-        return videoUrl;
+    public String getImdbId() {
+        return imdbId;
     }
 
-    public void setVideoUrl(String videoUrl) {
-        this.videoUrl = videoUrl;
+    public void setImdbId(String imdbId) {
+        this.imdbId = imdbId;
     }
 
+    public Integer getYear() {
+        return year;
+    }
+
+    public void setYear(Integer year) {
+        this.year = year;
+    }
+
+    public String getDirector() {
+        return director;
+    }
+
+    public void setDirector(String director) {
+        this.director = director;
+    }
+
+    public String getActors() {
+        return actors;
+    }
+
+    public void setActors(String actors) {
+        this.actors = actors;
+    }
+
+    public String getGenre() {
+        return genre;
+    }
+
+    public void setGenre(String genre) {
+        this.genre = genre;
+    }
+
+    public Double getImdbRating() {
+        return imdbRating;
+    }
+
+    public void setImdbRating(Double imdbRating) {
+        this.imdbRating = imdbRating;
+    }
+
+    // Thêm phương thức lấy embed URL động
     @Transient
-    public String getYoutubeThumbnail() {
-        if (videoUrl == null || videoUrl.isEmpty()) return "";
-
-        String videoId = "";
-
-        if (videoUrl.contains("embed/")) {
-            videoId = videoUrl.substring(videoUrl.lastIndexOf("/") + 1);
-        } else if (videoUrl.contains("v=")) {
-            videoId = videoUrl.substring(videoUrl.indexOf("v=") + 2);
-        } else if (videoUrl.contains("youtu.be/")) {
-            videoId = videoUrl.substring(videoUrl.lastIndexOf("/") + 1);
-        }
-
-        // Cắt ? & (si, t, list...)
-        if (videoId.contains("?")) {
-            videoId = videoId.substring(0, videoId.indexOf("?"));
-        }
-        if (videoId.contains("&")) {
-            videoId = videoId.substring(0, videoId.indexOf("&"));
-        }
-
-        return "https://img.youtube.com/vi/" + videoId + "/hqdefault.jpg";
+    public String getEmbedUrl() {
+        return VidSrcUtil.getEmbedUrl(this.imdbId);
     }
 }

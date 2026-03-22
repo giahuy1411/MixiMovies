@@ -3,7 +3,7 @@ package servlet;
 import java.io.IOException;
 import java.util.List;
 
-import javax.servlet.*;
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 
@@ -14,22 +14,14 @@ import entity.Video;
 @WebServlet("/home")
 public class HomeServlet extends HttpServlet {
 
+    private VideoDAO videoDao = new VideoDAOImpl();
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-
-        HttpSession session = req.getSession(false);
-
-        if (session == null || session.getAttribute("user") == null) {
-            req.getRequestDispatcher("/views/login.jsp").forward(req, resp);
-            return;
-        }
-        req.getRequestDispatcher("/views/index.jsp").forward(req, resp);
-    }
-
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-
+        // Lấy danh sách video active
+        List<Video> videos = videoDao.findAllActive();
+        req.setAttribute("videos", videos);
         req.getRequestDispatcher("/views/index.jsp").forward(req, resp);
     }
 }
