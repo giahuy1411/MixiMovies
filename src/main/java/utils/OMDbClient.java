@@ -12,7 +12,7 @@ import entity.Video;
 
 public class OMDbClient {
 
-    private static final String API_KEY = "59b1eb62"; // 🔁 thay bằng key thật của bạn
+    private static final String API_KEY = "59b1eb62"; 
     private static final String API_URL = "http://www.omdbapi.com/";
 
     /**

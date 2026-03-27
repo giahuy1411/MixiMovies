@@ -11,16 +11,16 @@ import javax.servlet.http.HttpSession;
 import dao.UserDAO;
 import dao.UserDAOImpl;
 import entity.User;
+import utils.PasswordUtil;
 
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
 
-    UserDAO userDao = new UserDAOImpl();
+    private final UserDAO userDao = new UserDAOImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-
         req.getRequestDispatcher("/views/login.jsp").forward(req, resp);
     }
 
@@ -30,30 +30,27 @@ public class LoginServlet extends HttpServlet {
 
         req.setCharacterEncoding("UTF-8");
 
-        String id = req.getParameter("id");
+        String id       = req.getParameter("id");
         String password = req.getParameter("password");
 
-        // Check rỗng
         if (id == null || id.trim().isEmpty()
                 || password == null || password.trim().isEmpty()) {
-
             req.setAttribute("error", "Vui lòng nhập đầy đủ thông tin!");
             req.getRequestDispatcher("/views/login.jsp").forward(req, resp);
             return;
         }
 
-        User user = userDao.findById(id);
+        User user = userDao.findById(id.trim());
 
-        if (user == null || !password.equals(user.getPassword())) {
+        // Dùng PasswordUtil.verify() — hỗ trợ cả hash SHA-256 lẫn plain text cũ
+        if (user == null || !PasswordUtil.verify(password, user.getPassword())) {
             req.setAttribute("error", "Sai tên đăng nhập hoặc mật khẩu!");
             req.getRequestDispatcher("/views/login.jsp").forward(req, resp);
             return;
         }
 
-        // Đăng nhập thanh công
         HttpSession session = req.getSession();
         session.setAttribute("user", user);
-
         resp.sendRedirect(req.getContextPath() + "/home");
     }
 }

@@ -10,6 +10,7 @@ import javax.servlet.http.*;
 
 import entity.User;
 import utils.Mailer;
+import utils.PasswordUtil;
 import utils.XJPA;
 
 @WebServlet("/register")
@@ -70,7 +71,7 @@ public class RegisterServlet extends HttpServlet {
             // Tạo user
             User user = new User();
             user.setId(id);
-            user.setPassword(password);
+            user.setPassword(PasswordUtil.hash(password));
             user.setEmail(email);
             user.setFullname(fullname);
             user.setAdmin(false);
