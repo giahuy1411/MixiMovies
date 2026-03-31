@@ -10,12 +10,12 @@ import java.util.List;
 public class CommentDAOImpl implements CommentDAO {
 
     @Override
-    public List<Comment> findByVideo(Long videoId) {
+    public List<Comment> findBySeries(Long seriesId) {
         EntityManager em = XJPA.getEntityManager();
         try {
-            String jpql = "SELECT c FROM Comment c WHERE c.video.id = :vid ORDER BY c.createdAt DESC";
+            String jpql = "SELECT c FROM Comment c WHERE c.series.id = :sid ORDER BY c.createdAt DESC";
             TypedQuery<Comment> query = em.createQuery(jpql, Comment.class);
-            query.setParameter("vid", videoId);
+            query.setParameter("sid", seriesId);
             return query.getResultList();
         } finally {
             em.close();
@@ -40,7 +40,8 @@ public class CommentDAOImpl implements CommentDAO {
         try {
             em.getTransaction().begin();
             Comment comment = em.find(Comment.class, id);
-            if (comment != null) em.remove(comment);
+            if (comment != null)
+                em.remove(comment);
             em.getTransaction().commit();
         } finally {
             em.close();

@@ -16,8 +16,8 @@ public class Share {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "VideoId", nullable = false)
-    private Video video;
+    @JoinColumn(name = "SeriesId", nullable = false) // đổi từ VideoId
+    private Series series;
 
     @Column(name = "Emails")
     private String emails;
@@ -26,8 +26,13 @@ public class Share {
     @Column(name = "ShareDate")
     private Date shareDate;
 
+    // Getters & Setters
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public User getUser() {
@@ -38,12 +43,12 @@ public class Share {
         this.user = user;
     }
 
-    public Video getVideo() {
-        return video;
+    public Series getSeries() {
+        return series;
     }
 
-    public void setVideo(Video video) {
-        this.video = video;
+    public void setSeries(Series series) {
+        this.series = series;
     }
 
     public String getEmails() {

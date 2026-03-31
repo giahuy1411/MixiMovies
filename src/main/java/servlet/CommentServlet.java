@@ -9,21 +9,21 @@ import javax.servlet.http.*;
 
 import dao.CommentDAO;
 import dao.CommentDAOImpl;
-import dao.VideoDAO;
-import dao.VideoDAOImpl;
+import dao.SeriesDAO;
+import dao.SeriesDAOImpl;
 import entity.Comment;
 import entity.User;
-import entity.Video;
+import entity.Series;
 
 /**
  * Xử lý thêm bình luận mới.
- * POST /addComment  { videoId, content }
+ * POST /addComment  { seriesId, content }
  */
 @WebServlet("/addComment")
 public class CommentServlet extends HttpServlet {
 
     private final CommentDAO commentDao = new CommentDAOImpl();
-    private final VideoDAO   videoDao   = new VideoDAOImpl();
+    private final SeriesDAO  seriesDao  = new SeriesDAOImpl();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -31,37 +31,36 @@ public class CommentServlet extends HttpServlet {
 
         req.setCharacterEncoding("UTF-8");
 
-        // Kiểm tra đăng nhập
-        HttpSession session = req.getSession(false);
-        User user = (session != null) ? (User) session.getAttribute("user") : null;
+        // Kiểm tra đăng nhập bằng AuthUtil
+        User user = utils.AuthUtil.get(req);
         if (user == null) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 
-        String videoIdParam = req.getParameter("videoId");
-        String content      = req.getParameter("content");
+        String seriesIdParam = req.getParameter("seriesId");
+        String content       = req.getParameter("content");
 
-        if (videoIdParam == null || content == null || content.trim().isEmpty()) {
+        if (seriesIdParam == null || content == null || content.trim().isEmpty()) {
             resp.sendRedirect(req.getContextPath() + "/home");
             return;
         }
 
-        Long  videoId = Long.parseLong(videoIdParam);
-        Video video   = videoDao.findById(videoId);
-        if (video == null) {
+        Long  seriesId = Long.parseLong(seriesIdParam);
+        Series series   = seriesDao.findById(seriesId);
+        if (series == null) {
             resp.sendError(404);
             return;
         }
 
         Comment comment = new Comment();
         comment.setUser(user);
-        comment.setVideo(video);
+        comment.setSeries(series);
         comment.setContent(content.trim());
         comment.setCreatedAt(new Date());
         commentDao.create(comment);
 
         // Redirect lại trang xem phim
-        resp.sendRedirect(req.getContextPath() + "/watch?id=" + videoId);
+        resp.sendRedirect(req.getContextPath() + "/watch?id=" + seriesId);
     }
 }

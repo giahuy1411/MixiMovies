@@ -1,15 +1,14 @@
 package dao;
 
-import java.util.List;
-
 import entity.Favorite;
-import entity.Video;
+import entity.Series;
+import java.util.List;
 
 public interface FavoriteDAO {
 	
 	void create(Favorite f);
 
-	List<Video> findVideoByUser(String userId);
-	
-	void deleteByUserAndVideo(String userId, Long videoId);
+	List<Series> findSeriesByUser(String userId);
+
+	void deleteByUserAndSeries(String userId, Long seriesId);
 }

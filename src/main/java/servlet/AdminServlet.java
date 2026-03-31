@@ -9,10 +9,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import dao.VideoDAO;
-import dao.VideoDAOImpl;
-import entity.Video;
-import utils.OMDbClient;
+import dao.SeriesDAO;
+import dao.SeriesDAOImpl;
+import entity.Series;
+import utils.KKPhimClient;
 
 @WebServlet({
     "/admin/video",
@@ -22,7 +22,7 @@ import utils.OMDbClient;
 })
 public class AdminServlet extends HttpServlet {
 
-    private VideoDAO videoDao = new VideoDAOImpl();
+    private final SeriesDAO seriesDao = new SeriesDAOImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -30,15 +30,15 @@ public class AdminServlet extends HttpServlet {
         String uri = req.getRequestURI();
 
         if (uri.endsWith("/admin/video")) {
-            List<Video> list = videoDao.findAll();
-            req.setAttribute("videos", list);
+            List<Series> list = seriesDao.findAll();
+            req.setAttribute("seriesList", list);
             req.getRequestDispatcher("/views/admin.jsp").forward(req, resp);
             return;
         }
 
         if (uri.contains("/admin/video/delete")) {
             Long id = Long.parseLong(req.getParameter("id"));
-            videoDao.delete(id);
+            seriesDao.delete(id);
             resp.sendRedirect(req.getContextPath() + "/admin/video");
             return;
         }
@@ -51,27 +51,30 @@ public class AdminServlet extends HttpServlet {
         String uri = req.getRequestURI();
 
         if (uri.contains("/admin/video/create")) {
-            String imdbId = req.getParameter("imdbId");
-            if (imdbId == null || imdbId.trim().isEmpty()) {
-                req.setAttribute("error", "IMDb ID không được để trống");
+            String slug = req.getParameter("slug");
+            if (slug == null || slug.trim().isEmpty()) {
+                req.setAttribute("error", "Slug phim không được để trống");
+                req.setAttribute("seriesList", seriesDao.findAll());
                 req.getRequestDispatcher("/views/admin.jsp").forward(req, resp);
                 return;
             }
 
-            Video existing = videoDao.findByImdbId(imdbId);
+            Series existing = seriesDao.findBySlug(slug);
             if (existing != null) {
-                req.setAttribute("error", "Phim đã tồn tại với IMDb ID: " + imdbId);
+                req.setAttribute("error", "Phim đã tồn tại với Slug: " + slug);
+                req.setAttribute("seriesList", seriesDao.findAll());
                 req.getRequestDispatcher("/views/admin.jsp").forward(req, resp);
                 return;
             }
 
             try {
-                Video video = OMDbClient.fetchMovieByImdbId(imdbId);
-                videoDao.create(video);
+                Series series = KKPhimClient.fetchSeriesBySlug(slug.trim());
+                seriesDao.create(series);
                 resp.sendRedirect(req.getContextPath() + "/admin/video");
             } catch (Exception e) {
                 e.printStackTrace();
-                req.setAttribute("error", "Lỗi khi lấy thông tin phim: " + e.getMessage());
+                req.setAttribute("error", "Lỗi: " + e.getMessage());
+                req.setAttribute("seriesList", seriesDao.findAll());
                 req.getRequestDispatcher("/views/admin.jsp").forward(req, resp);
             }
             return;
@@ -79,18 +82,17 @@ public class AdminServlet extends HttpServlet {
 
         if (uri.contains("/admin/video/update")) {
             Long id = Long.parseLong(req.getParameter("id"));
-            Video v = videoDao.findById(id);
-            if (v != null) {
-                v.setTitle(req.getParameter("title"));
-                v.setDescription(req.getParameter("description"));
-                v.setPoster(req.getParameter("poster"));
-                v.setYear(Integer.parseInt(req.getParameter("year")));
-                v.setDirector(req.getParameter("director"));
-                v.setActors(req.getParameter("actors"));
-                v.setGenre(req.getParameter("genre"));
-                v.setImdbRating(Double.parseDouble(req.getParameter("imdbRating")));
-                // Không set videoUrl nữa
-                videoDao.update(v);
+            Series s = seriesDao.findById(id);
+            if (s != null) {
+                s.setTitle(req.getParameter("title"));
+                s.setDescription(req.getParameter("description"));
+                s.setPoster(req.getParameter("poster"));
+                s.setYear(Integer.parseInt(req.getParameter("year")));
+                s.setDirector(req.getParameter("director"));
+                s.setActors(req.getParameter("actors"));
+                s.setGenre(req.getParameter("genre"));
+                // Không update episodes ở đây vì phức tạp, admin chỉ quản lý metadata cơ bản ở form sửa
+                seriesDao.update(s);
             }
             resp.sendRedirect(req.getContextPath() + "/admin/video");
         }

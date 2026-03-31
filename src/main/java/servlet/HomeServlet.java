@@ -7,21 +7,21 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 
-import dao.VideoDAO;
-import dao.VideoDAOImpl;
-import entity.Video;
+import dao.SeriesDAO;
+import dao.SeriesDAOImpl;
+import entity.Series;
 
 @WebServlet("/home")
 public class HomeServlet extends HttpServlet {
 
-    private VideoDAO videoDao = new VideoDAOImpl();
+    private final SeriesDAO seriesDao = new SeriesDAOImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        // Lấy danh sách video active
-        List<Video> videos = videoDao.findAllActive();
-        req.setAttribute("videos", videos);
+        
+        List<Series> seriesList = seriesDao.findAllActive();
+        req.setAttribute("seriesList", seriesList);
         req.getRequestDispatcher("/views/index.jsp").forward(req, resp);
     }
 }

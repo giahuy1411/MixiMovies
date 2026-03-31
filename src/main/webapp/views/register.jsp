@@ -172,6 +172,22 @@
 
     <div class="auth-container">
         <div class="auth-card">
+            <style>
+                .mixi-logo-auth {
+                    height: 140px;
+                    object-fit: contain;
+                    filter: drop-shadow(0 8px 24px rgba(229,9,20,0.5));
+                    animation: floatLogo 4s ease-in-out infinite;
+                }
+                @keyframes floatLogo {
+                    0% { transform: translateY(0px) scale(1); }
+                    50% { transform: translateY(-12px) scale(1.03); }
+                    100% { transform: translateY(0px) scale(1); }
+                }
+            </style>
+            <div class="auth-logo" style="text-align: center; margin-bottom: 25px;">
+                <img src="${pageContext.request.contextPath}/assets/images/logo.png" alt="MixiMovies Logo" class="mixi-logo-auth">
+            </div>
             <h2>Đăng ký tài khoản</h2>
 
             <c:if test="${not empty error}">

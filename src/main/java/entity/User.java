@@ -16,7 +16,7 @@ public class User {
     @Column(name = "Email", nullable = false, unique = true)
     private String email;
 
-    @Column(name = "Fullname", nullable = false)
+    @Column(name = "Fullname", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String fullname;
 
     @Column(name = "Admin")

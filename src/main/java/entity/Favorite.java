@@ -16,15 +16,20 @@ public class Favorite {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "VideoId", nullable = false)
-    private Video video;
+    @JoinColumn(name = "SeriesId", nullable = false) // đổi từ VideoId
+    private Series series;
 
     @Temporal(TemporalType.DATE)
     @Column(name = "LikeDate")
     private Date likeDate;
 
+    // Getters & Setters
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public User getUser() {
@@ -35,12 +40,12 @@ public class Favorite {
         this.user = user;
     }
 
-    public Video getVideo() {
-        return video;
+    public Series getSeries() {
+        return series;
     }
 
-    public void setVideo(Video video) {
-        this.video = video;
+    public void setSeries(Series series) {
+        this.series = series;
     }
 
     public Date getLikeDate() {

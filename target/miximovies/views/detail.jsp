@@ -6,8 +6,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${video.title} (${video.year}) — MixiMovies</title>
-    <meta name="description" content="${video.description}">
+    <title>${series.title} (${series.year}) — MixiMovies</title>
+    <meta name="description" content="${series.description}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -158,6 +158,53 @@
             font-size: 0.82rem; font-weight: 600; padding: 0; margin-bottom: 22px;
         }
 
+        /* ─── EPISODES LIST ─── */
+        .episodes-section {
+            margin-top: 20px;
+        }
+        .episodes-title {
+            font-size: 1.1rem; font-weight: 700; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .episodes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 10px;
+        }
+        .ep-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg3);
+            color: var(--text2);
+            padding: 10px 5px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+            text-align: center;
+            white-space: nowrap;
+            min-height: 42px;
+        }
+        .ep-btn:hover {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(229, 9, 20, 0.2);
+        }
+        .ep-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .ep-btn.active {
+            background: var(--accent); color: #fff; border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(229,9,20,0.3);
+        }
+
         .info-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
         }
@@ -283,7 +330,7 @@
     <nav class="breadcrumb">
         <a href="${pageContext.request.contextPath}/home"><i class="fas fa-home"></i> Trang chủ</a>
         <span class="sep">/</span>
-        <span class="current">${video.title}</span>
+        <span class="current">${series.title}</span>
     </nav>
 
     <div class="watch-grid">
@@ -292,50 +339,71 @@
             <!-- Player -->
             <div class="player-wrapper">
                 <div class="player-aspect">
-                    <iframe src="${video.embedUrl}"
-                            allowfullscreen
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
-                    </iframe>
+                    <c:choose>
+                        <c:when test="${not empty currentEpisode}">
+                            <iframe src="${currentEpisode.videoUrl}"
+                                    allowfullscreen
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+                            </iframe>
+                        </c:when>
+                        <c:otherwise>
+                            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#666;">
+                                Không có video
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </div>
+
+            <!-- Episodes Picker -->
+            <c:if test="${not empty series.episodes}">
+                <div class="episodes-section">
+                    <div class="episodes-title"><i class="fas fa-list-ul"></i> Chọn tập phim</div>
+                    <div class="episodes-grid">
+                        <c:forEach var="ep" items="${series.episodes}">
+                            <a href="${pageContext.request.contextPath}/watch?id=${series.id}&ep=${ep.id}"
+                               class="ep-btn ${currentEpisode.id == ep.id ? 'active' : ''}">
+                                ${ep.title}
+                            </a>
+                        </c:forEach>
+                    </div>
+                </div>
+            </c:if>
 
             <!-- Movie Header -->
             <div class="movie-header">
                 <div class="movie-title-row">
-                    <h1 class="movie-title">${video.title}</h1>
-                    <span class="movie-year-tag">${video.year}</span>
+                    <h1 class="movie-title">${series.title} <c:if test="${not empty currentEpisode}">- ${currentEpisode.title}</c:if></h1>
+                    <span class="movie-year-tag">${series.year}</span>
                 </div>
 
                 <div class="movie-badges">
-                    <span class="badge badge-rating">
-                        <i class="fas fa-star"></i> ${video.imdbRating} IMDb
-                    </span>
                     <span class="badge badge-hd">
-                        <i class="fas fa-film"></i> HD
+                        <i class="fas fa-film"></i> ${series.type == 'tv' ? 'TV Series' : 'HD'}
                     </span>
-                    <c:forTokens items="${video.genre}" delims="," var="g">
+                    <c:forTokens items="${series.genre}" delims="," var="g">
                         <span class="badge badge-genre">${g}</span>
                     </c:forTokens>
                     <span class="badge badge-views">
-                        <i class="fas fa-eye"></i> ${video.views} lượt xem
+                        <i class="fas fa-eye"></i> ${series.views != null ? series.views : 0} lượt xem
                     </span>
                 </div>
 
-                <p class="movie-desc" id="movieDesc">${video.description}</p>
+                <p class="movie-desc" id="movieDesc">${series.description}</p>
                 <button class="desc-toggle" id="descToggle" onclick="toggleDesc()">Xem thêm ▼</button>
 
                 <div class="info-grid">
                     <div class="info-item">
                         <label>Đạo diễn</label>
-                        <p>${empty video.director ? 'Đang cập nhật' : video.director}</p>
+                        <p>${empty series.director ? 'Đang cập nhật' : series.director}</p>
                     </div>
                     <div class="info-item">
                         <label>Năm phát hành</label>
-                        <p>${video.year}</p>
+                        <p>${series.year}</p>
                     </div>
                     <div class="info-item" style="grid-column:1/-1;">
                         <label>Diễn viên</label>
-                        <p>${empty video.actors ? 'Đang cập nhật' : video.actors}</p>
+                        <p>${empty series.actors ? 'Đang cập nhật' : series.actors}</p>
                     </div>
                 </div>
             </div>
@@ -349,7 +417,7 @@
                 <c:choose>
                     <c:when test="${not empty sessionScope.user}">
                         <form class="comment-form" action="${pageContext.request.contextPath}/addComment" method="post">
-                            <input type="hidden" name="videoId" value="${video.id}">
+                            <input type="hidden" name="seriesId" value="${series.id}">
                             <textarea name="content" placeholder="Chia sẻ cảm nhận của bạn về phim..." required></textarea>
                             <button type="submit">
                                 <i class="fas fa-paper-plane"></i> Gửi bình luận

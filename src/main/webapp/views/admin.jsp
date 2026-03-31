@@ -354,15 +354,28 @@
 
 <!-- ─── SIDEBAR ─── -->
 <aside class="admin-sidebar">
-    <div class="sidebar-logo">
-        <div class="brand">🎬 MixiMovies</div>
+    <style>
+        .mixi-logo-admin {
+            height: 100px;
+            object-fit: contain;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 6px 14px rgba(229,9,20,0.35));
+            transition: all 0.3s ease;
+        }
+        .mixi-logo-admin:hover {
+            transform: scale(1.08) rotate(-3deg);
+            filter: drop-shadow(0 8px 20px rgba(229,9,20,0.5));
+        }
+    </style>
+    <div class="sidebar-logo" style="text-align: center; padding-top: 30px;">
+        <img src="${pageContext.request.contextPath}/assets/images/logo.png" alt="MixiMovies Logo" class="mixi-logo-admin">
         <div class="sub">Admin Panel</div>
     </div>
     <nav class="sidebar-nav">
         <div class="nav-group-label">Quản lý</div>
         <a href="${pageContext.request.contextPath}/admin/video" class="sidebar-link active">
             <i class="fas fa-film"></i> Quản lý Video
-            <span class="badge-count">${fn:length(videos)}</span>
+            <span class="badge-count">${fn:length(seriesList)}</span>
         </a>
         <div class="nav-group-label">Điều hướng</div>
         <a href="${pageContext.request.contextPath}/home" class="sidebar-link">
@@ -398,7 +411,7 @@
             <div class="stat-card">
                 <div class="stat-icon red"><i class="fas fa-film"></i></div>
                 <div>
-                    <h3>${fn:length(videos)}</h3>
+                    <h3>${fn:length(seriesList)}</h3>
                     <p>Tổng số phim</p>
                 </div>
             </div>
@@ -419,7 +432,7 @@
             <div class="stat-card">
                 <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
                 <div>
-                    <h3>${fn:length(videos)}</h3>
+                    <h3>${fn:length(seriesList)}</h3>
                     <p>Phim đang hoạt động</p>
                 </div>
             </div>
@@ -448,63 +461,69 @@
                 <thead>
                     <tr>
                         <th class="col-poster">Poster</th>
-                        <th>Tiêu đề / IMDb ID</th>
+                        <th>Tiêu đề / Slug</th>
                         <th>Năm</th>
                         <th>Thể loại</th>
-                        <th>Điểm</th>
+                        <th>Số tập</th>
                         <th>Lượt xem</th>
                         <th>Trạng thái</th>
                         <th style="text-align:right;">Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <c:forEach var="v" items="${videos}">
-                        <tr data-title="${v.title}">
+                    <c:forEach var="s" items="${seriesList}">
+                        <tr data-title="${fn:escapeXml(s.title)}">
                             <td>
-                                <img src="${v.poster != 'N/A' && !empty v.poster ? v.poster : 'https://via.placeholder.com/48x64/1a1a24/666?text=?'}"
-                                     class="poster-thumb" alt="${v.title}">
+                                <img src="${s.poster != 'N/A' && !empty s.poster ? s.poster : 'https://via.placeholder.com/48x64/1a1a24/666?text=?'}"
+                                     class="poster-thumb" alt="${s.title}">
                             </td>
                             <td>
-                                <div class="video-title">${v.title}</div>
-                                <div class="video-imdb">${v.imdbId}</div>
+                                <div class="video-title">${s.title}</div>
+                                <div class="video-imdb">${s.slug}</div>
                             </td>
-                            <td>${v.year}</td>
-                            <td>${v.genre}</td>
+                            <td>${s.year}</td>
+                            <td>${s.genre}</td>
                             <td>
                                 <span class="rating-pill">
-                                    <i class="fas fa-star" style="font-size:0.65rem;"></i>
-                                    ${v.imdbRating}
+                                    <i class="fas fa-list" style="font-size:0.65rem;"></i>
+                                    ${fn:length(s.episodes)}
                                 </span>
                             </td>
                             <td>
                                 <span class="views-pill">
                                     <i class="fas fa-eye" style="font-size:0.65rem;"></i>
-                                    ${v.views}
+                                    ${s.views != null ? s.views : 0}
                                 </span>
                             </td>
                             <td><span class="status-badge status-active">Active</span></td>
                             <td>
                                 <div class="action-btns" style="justify-content:flex-end;">
-                                    <button class="btn-edit" onclick="openEdit(
-                                        '${v.id}','${v.title}','${v.description}',
-                                        '${v.poster}','${v.year}','${v.director}',
-                                        '${v.actors}','${v.genre}','${v.imdbRating}')">
+                                    <button class="btn-edit" 
+                                            data-id="${s.id}"
+                                            data-title="${fn:escapeXml(s.title)}"
+                                            data-desc="${fn:escapeXml(s.description)}"
+                                            data-poster="${s.poster}"
+                                            data-year="${s.year}"
+                                            data-director="${fn:escapeXml(s.director)}"
+                                            data-actors="${fn:escapeXml(s.actors)}"
+                                            data-genre="${fn:escapeXml(s.genre)}"
+                                            onclick="openEdit(this)">
                                         <i class="fas fa-pen"></i> Sửa
                                     </button>
-                                    <a href="${pageContext.request.contextPath}/admin/video/delete?id=${v.id}"
+                                    <a href="${pageContext.request.contextPath}/admin/video/delete?id=${s.id}"
                                        class="btn-delete"
-                                       onclick="return confirm('Xóa phim \'${v.title}\'?')">
+                                       onclick="return confirm('Xóa phim \'${s.title}\'?')">
                                         <i class="fas fa-trash"></i> Xóa
                                     </a>
                                 </div>
                             </td>
                         </tr>
                     </c:forEach>
-                    <c:if test="${empty videos}">
+                    <c:if test="${empty seriesList}">
                         <tr class="empty-row">
                             <td colspan="8">
                                 <i class="fas fa-film" style="font-size:2rem;display:block;margin-bottom:10px;color:#333;"></i>
-                                Chưa có phim nào. Hãy thêm phim mới bằng IMDb ID.
+                                Chưa có phim nào. Hãy thêm phim mới bằng Slug KKPhim.
                             </td>
                         </tr>
                     </c:if>
@@ -518,14 +537,14 @@
 <div class="modal-overlay" id="createModal" onclick="closeModalOutside(event,'createModal')">
     <div class="modal-box">
         <div class="modal-header">
-            <div class="modal-title"><i class="fas fa-plus-circle" style="color:var(--accent);margin-right:8px;"></i>Thêm phim qua IMDb ID</div>
+            <div class="modal-title"><i class="fas fa-plus-circle" style="color:var(--accent);margin-right:8px;"></i>Thêm phim qua Slug KKPhim</div>
             <button class="modal-close" onclick="closeModal('createModal')"><i class="fas fa-times"></i></button>
         </div>
         <form action="${pageContext.request.contextPath}/admin/video/create" method="post">
             <div class="form-group">
-                <label>IMDb ID</label>
-                <input name="imdbId" placeholder="Ví dụ: tt1375666" required>
-                <div class="form-hint">Hệ thống sẽ tự động lấy thông tin phim từ OMDb API và tạo link stream từ VidSrc.</div>
+                <label>Slug (tên miền phụ KKPhim)</label>
+                <input name="slug" placeholder="Ví dụ: venom-keo-cuoi-cung" required>
+                <div class="form-hint">Hệ thống sẽ tự động lấy thông tin phim và toàn bộ tập phim từ KKPhim.</div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-cancel" onclick="closeModal('createModal')">Hủy</button>
@@ -559,10 +578,6 @@
                     <label>Đạo diễn</label>
                     <input id="editDirector" name="director">
                 </div>
-                <div class="form-group">
-                    <label>Điểm IMDb</label>
-                    <input id="editRating" name="imdbRating" type="number" step="0.1" min="0" max="10">
-                </div>
             </div>
             <div class="form-group">
                 <label>Thể loại</label>
@@ -595,16 +610,15 @@
         if (e.target === document.getElementById(id)) closeModal(id);
     }
 
-    function openEdit(id, title, desc, poster, year, director, actors, genre, rating) {
-        document.getElementById('editId').value = id;
-        document.getElementById('editTitle').value = title;
-        document.getElementById('editDesc').value = desc;
-        document.getElementById('editPoster').value = poster;
-        document.getElementById('editYear').value = year;
-        document.getElementById('editDirector').value = director;
-        document.getElementById('editActors').value = actors;
-        document.getElementById('editGenre').value = genre;
-        document.getElementById('editRating').value = rating;
+    function openEdit(btn) {
+        document.getElementById('editId').value = btn.dataset.id;
+        document.getElementById('editTitle').value = btn.dataset.title;
+        document.getElementById('editDesc').value = btn.dataset.desc;
+        document.getElementById('editPoster').value = btn.dataset.poster;
+        document.getElementById('editYear').value = btn.dataset.year;
+        document.getElementById('editDirector').value = btn.dataset.director;
+        document.getElementById('editActors').value = btn.dataset.actors;
+        document.getElementById('editGenre').value = btn.dataset.genre;
         openModal('editModal');
     }
 

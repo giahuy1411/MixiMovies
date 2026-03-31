@@ -1,10 +1,10 @@
 package dao;
 
-import java.util.List;
-
-import javax.persistence.EntityManager;
 import entity.Share;
 import utils.XJPA;
+
+import javax.persistence.EntityManager;
+import java.util.List;
 
 public class ShareDAOImpl implements ShareDAO {
 
@@ -21,14 +21,11 @@ public class ShareDAOImpl implements ShareDAO {
     }
 
     @Override
-    public List<Share> findByVideo(Long videoId) {
+    public List<Share> findBySeries(Long seriesId) {
         EntityManager em = XJPA.getEntityManager();
         try {
-            return em.createQuery(
-                "SELECT s FROM Share s WHERE s.video.id = :vid",
-                Share.class
-            ).setParameter("vid", videoId)
-             .getResultList();
+            return em.createQuery("SELECT s FROM Share s WHERE s.series.id = :sid", Share.class)
+                    .setParameter("sid", seriesId).getResultList();
         } finally {
             em.close();
         }

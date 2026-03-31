@@ -24,27 +24,21 @@ public class AuthFilter implements Filter {
                          FilterChain chain)
             throws IOException, ServletException {
 
-        request.setCharacterEncoding("utf-8");
-        response.setCharacterEncoding("utf-8");
-
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
 
         String uri = req.getRequestURI();
-        HttpSession session = req.getSession(false);
-        User user = (session != null)
-                ? (User) session.getAttribute("user")
-                : null;
+        User user = utils.AuthUtil.get(req);
 
         // ===== ADMIN =====
         if (uri.contains("/admin")) {
-            if (user == null) {
+            if (!utils.AuthUtil.isLogin(req)) {
                 req.getSession(true).setAttribute(SECURITY_URI, uri);
                 resp.sendRedirect(req.getContextPath() + "/login");
                 return;
             }
 
-            if (!Boolean.TRUE.equals(user.getAdmin())) {
+            if (!utils.AuthUtil.isAdmin(req)) {
                 resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Ban khong co quyen truy cap trang nay");
                 return;
             }
@@ -53,7 +47,7 @@ public class AuthFilter implements Filter {
         // ===== CẦN LOGIN =====
         boolean needLogin = uri.contains("/addComment"); // Các chức năng yêu cầu user phải đăng nhập
 
-        if (needLogin && user == null) {
+        if (needLogin && !utils.AuthUtil.isLogin(req)) {
             req.getSession(true).setAttribute(SECURITY_URI, uri);
             resp.sendRedirect(req.getContextPath() + "/login");
             return;

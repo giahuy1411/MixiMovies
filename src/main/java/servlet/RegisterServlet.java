@@ -101,7 +101,7 @@ public class RegisterServlet extends HttpServlet {
                         + mailEx.getMessage());
             }
 
-            resp.sendRedirect(req.getContextPath() + "/views/login.jsp");
+            resp.sendRedirect(req.getContextPath() + "/login");
 
         } catch (Exception e) {
 

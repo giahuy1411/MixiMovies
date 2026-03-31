@@ -321,21 +321,17 @@
 <main class="main-content">
     <div class="section-header">
         <div class="section-title">Tất cả phim</div>
-        <span class="section-count" id="movieCount">${fn:length(videos)} phim</span>
+        <span class="section-count" id="movieCount">${fn:length(seriesList)} phim</span>
     </div>
 
     <div class="movie-grid" id="movieGrid">
-        <c:forEach var="video" items="${videos}">
-            <a href="${pageContext.request.contextPath}/watch?id=${video.id}" class="movie-card"
-               data-title="${video.title}" data-genre="${video.genre}" data-year="${video.year}">
+        <c:forEach var="series" items="${seriesList}">
+            <a href="${pageContext.request.contextPath}/watch?id=${series.id}" class="movie-card"
+               data-title="${series.title}" data-genre="${series.genre}" data-year="${series.year}">
                 <div class="card-poster">
-                    <img src="${video.poster != 'N/A' && !empty video.poster ? video.poster : 'https://via.placeholder.com/200x300/1a1a24/666?text=No+Poster'}"
-                         alt="${video.title}" loading="lazy">
-                    <div class="card-badge">HD</div>
-                    <div class="card-rating-badge">
-                        <i class="fas fa-star" style="font-size:0.65rem;"></i>
-                        ${video.imdbRating}
-                    </div>
+                    <img src="${series.poster != 'N/A' && !empty series.poster ? series.poster : 'https://via.placeholder.com/200x300/1a1a24/666?text=No+Poster'}"
+                         alt="${series.title}" loading="lazy">
+                    <div class="card-badge">${series.type == 'tv' ? 'TV' : 'HD'}</div>
                     <div class="card-overlay">
                         <div class="card-play">
                             <i class="fas fa-play"></i>
@@ -343,19 +339,19 @@
                     </div>
                 </div>
                 <div class="card-info">
-                    <div class="card-title">${video.title}</div>
+                    <div class="card-title">${series.title}</div>
                     <div class="card-meta">
-                        <span class="card-year">${video.year}</span>
+                        <span class="card-year">${series.year}</span>
                         <span class="card-views">
                             <i class="fas fa-eye" style="font-size:0.65rem;"></i>
-                            ${video.views}
+                            ${series.views != null ? series.views : 0}
                         </span>
                     </div>
                 </div>
             </a>
         </c:forEach>
 
-        <c:if test="${empty videos}">
+        <c:if test="${empty seriesList}">
             <div class="empty-state">
                 <i class="fas fa-film"></i>
                 <p>Chưa có phim nào. Admin hãy thêm phim mới!</p>
