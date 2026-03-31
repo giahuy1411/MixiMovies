@@ -11,27 +11,56 @@ import javax.servlet.http.HttpServletResponse;
 
 import dao.SeriesDAO;
 import dao.SeriesDAOImpl;
+import dao.UserDAO;
+import dao.UserDAOImpl;
 import entity.Series;
+import entity.User;
 import utils.KKPhimClient;
 
 @WebServlet({
     "/admin/video",
     "/admin/video/create",
     "/admin/video/update",
-    "/admin/video/delete"
+    "/admin/video/delete",
+    "/admin/users",
+    "/admin/users/role"
 })
 public class AdminServlet extends HttpServlet {
 
     private final SeriesDAO seriesDao = new SeriesDAOImpl();
+    private final UserDAO userDAO = new UserDAOImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         String uri = req.getRequestURI();
+        String tab = req.getParameter("tab");
+        if (tab == null) tab = "video";
 
-        if (uri.endsWith("/admin/video")) {
-            List<Series> list = seriesDao.findAll();
-            req.setAttribute("seriesList", list);
+        if (uri.endsWith("/admin/video") || uri.endsWith("/admin/users")) {
+            List<Series> seriesList = seriesDao.findAll();
+            List<User> userList = userDAO.findAll();
+
+            // Stats (Java 7 compatible)
+            long totalVideos = seriesList.size();
+            long totalUsers = userList.size();
+            long totalViews = 0;
+            long activeVideosCount = 0;
+            for (Series s : seriesList) {
+                if (s.getViews() != null) totalViews += s.getViews();
+                if (s.getActive() != null && s.getActive()) {
+                    activeVideosCount++;
+                }
+            }
+
+            req.setAttribute("seriesList", seriesList);
+            req.setAttribute("userList", userList);
+            req.setAttribute("totalVideos", totalVideos);
+            req.setAttribute("totalUsers", totalUsers);
+            req.setAttribute("totalViews", totalViews);
+            req.setAttribute("activeVideos", activeVideosCount);
+            req.setAttribute("currentTab", tab);
+
             req.getRequestDispatcher("/views/admin.jsp").forward(req, resp);
             return;
         }
@@ -40,6 +69,17 @@ public class AdminServlet extends HttpServlet {
             Long id = Long.parseLong(req.getParameter("id"));
             seriesDao.delete(id);
             resp.sendRedirect(req.getContextPath() + "/admin/video");
+            return;
+        }
+
+        if (uri.contains("/admin/users/role")) {
+            String id = req.getParameter("id");
+            User u = userDAO.findById(id);
+            if (u != null) {
+                u.setAdmin(!u.getAdmin());
+                userDAO.update(u);
+            }
+            resp.sendRedirect(req.getContextPath() + "/admin/users?tab=users");
             return;
         }
     }
@@ -81,20 +121,24 @@ public class AdminServlet extends HttpServlet {
         }
 
         if (uri.contains("/admin/video/update")) {
-            Long id = Long.parseLong(req.getParameter("id"));
-            Series s = seriesDao.findById(id);
-            if (s != null) {
-                s.setTitle(req.getParameter("title"));
-                s.setDescription(req.getParameter("description"));
-                s.setPoster(req.getParameter("poster"));
-                s.setYear(Integer.parseInt(req.getParameter("year")));
-                s.setDirector(req.getParameter("director"));
-                s.setActors(req.getParameter("actors"));
-                s.setGenre(req.getParameter("genre"));
-                // Không update episodes ở đây vì phức tạp, admin chỉ quản lý metadata cơ bản ở form sửa
-                seriesDao.update(s);
+            String idStr = req.getParameter("id");
+            if (idStr != null) {
+                Long id = Long.parseLong(idStr);
+                Series s = seriesDao.findById(id);
+                if (s != null) {
+                    s.setTitle(req.getParameter("title"));
+                    s.setDescription(req.getParameter("description"));
+                    s.setPoster(req.getParameter("poster"));
+                    s.setYear(Integer.parseInt(req.getParameter("year")));
+                    s.setDirector(req.getParameter("director"));
+                    s.setActors(req.getParameter("actors"));
+                    s.setGenre(req.getParameter("genre"));
+                    s.setActive("on".equals(req.getParameter("active")));
+                    seriesDao.update(s);
+                }
             }
             resp.sendRedirect(req.getContextPath() + "/admin/video");
+            return;
         }
     }
 }

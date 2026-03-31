@@ -373,9 +373,13 @@
     </div>
     <nav class="sidebar-nav">
         <div class="nav-group-label">Quản lý</div>
-        <a href="${pageContext.request.contextPath}/admin/video" class="sidebar-link active">
+        <a href="${pageContext.request.contextPath}/admin/video?tab=video" class="sidebar-link ${currentTab == 'video' ? 'active' : ''}">
             <i class="fas fa-film"></i> Quản lý Video
-            <span class="badge-count">${fn:length(seriesList)}</span>
+            <span class="badge-count">${totalVideos}</span>
+        </a>
+        <a href="${pageContext.request.contextPath}/admin/users?tab=users" class="sidebar-link ${currentTab == 'users' ? 'active' : ''}">
+            <i class="fas fa-users"></i> Quản lý Người dùng
+            <span class="badge-count">${totalUsers}</span>
         </a>
         <div class="nav-group-label">Điều hướng</div>
         <a href="${pageContext.request.contextPath}/home" class="sidebar-link">
@@ -411,28 +415,28 @@
             <div class="stat-card">
                 <div class="stat-icon red"><i class="fas fa-film"></i></div>
                 <div>
-                    <h3>${fn:length(seriesList)}</h3>
+                    <h3>${totalVideos}</h3>
                     <p>Tổng số phim</p>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon purple"><i class="fas fa-eye"></i></div>
                 <div>
-                    <h3>—</h3>
-                    <p>Lượt xem hôm nay</p>
+                    <h3>${totalViews}</h3>
+                    <p>Tổng lượt xem</p>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon gold"><i class="fas fa-star"></i></div>
+                <div class="stat-icon gold"><i class="fas fa-users"></i></div>
                 <div>
-                    <h3>—</h3>
-                    <p>Đánh giá TB</p>
+                    <h3>${totalUsers}</h3>
+                    <p>Tổng người dùng</p>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
                 <div>
-                    <h3>${fn:length(seriesList)}</h3>
+                    <h3>${activeVideos}</h3>
                     <p>Phim đang hoạt động</p>
                 </div>
             </div>
@@ -445,91 +449,193 @@
             </div>
         </c:if>
 
-        <!-- Table Section -->
-        <div class="section-header">
-            <div class="section-title">Danh sách phim</div>
-            <button class="btn-add" onclick="openModal('createModal')">
-                <i class="fas fa-plus"></i> Thêm phim mới
-            </button>
-        </div>
+        <c:choose>
+            <c:when test="${currentTab == 'users'}">
+                <!-- User Table Section -->
+                <div class="section-header">
+                    <div class="section-title">Danh sách người dùng</div>
+                </div>
 
-        <div class="table-wrapper">
-            <div class="table-filter">
-                <input type="text" id="tableSearch" placeholder="🔍 Tìm theo tên phim..." oninput="filterTable(this.value)">
-            </div>
-            <table id="videoTable">
-                <thead>
-                    <tr>
-                        <th class="col-poster">Poster</th>
-                        <th>Tiêu đề / Slug</th>
-                        <th>Năm</th>
-                        <th>Thể loại</th>
-                        <th>Số tập</th>
-                        <th>Lượt xem</th>
-                        <th>Trạng thái</th>
-                        <th style="text-align:right;">Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <c:forEach var="s" items="${seriesList}">
-                        <tr data-title="${fn:escapeXml(s.title)}">
-                            <td>
-                                <img src="${s.poster != 'N/A' && !empty s.poster ? s.poster : 'https://via.placeholder.com/48x64/1a1a24/666?text=?'}"
-                                     class="poster-thumb" alt="${s.title}">
-                            </td>
-                            <td>
-                                <div class="video-title">${s.title}</div>
-                                <div class="video-imdb">${s.slug}</div>
-                            </td>
-                            <td>${s.year}</td>
-                            <td>${s.genre}</td>
-                            <td>
-                                <span class="rating-pill">
-                                    <i class="fas fa-list" style="font-size:0.65rem;"></i>
-                                    ${fn:length(s.episodes)}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="views-pill">
-                                    <i class="fas fa-eye" style="font-size:0.65rem;"></i>
-                                    ${s.views != null ? s.views : 0}
-                                </span>
-                            </td>
-                            <td><span class="status-badge status-active">Active</span></td>
-                            <td>
-                                <div class="action-btns" style="justify-content:flex-end;">
-                                    <button class="btn-edit" 
-                                            data-id="${s.id}"
-                                            data-title="${fn:escapeXml(s.title)}"
-                                            data-desc="${fn:escapeXml(s.description)}"
-                                            data-poster="${s.poster}"
-                                            data-year="${s.year}"
-                                            data-director="${fn:escapeXml(s.director)}"
-                                            data-actors="${fn:escapeXml(s.actors)}"
-                                            data-genre="${fn:escapeXml(s.genre)}"
-                                            onclick="openEdit(this)">
-                                        <i class="fas fa-pen"></i> Sửa
-                                    </button>
-                                    <a href="${pageContext.request.contextPath}/admin/video/delete?id=${s.id}"
-                                       class="btn-delete"
-                                       onclick="return confirm('Xóa phim \'${s.title}\'?')">
-                                        <i class="fas fa-trash"></i> Xóa
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    </c:forEach>
-                    <c:if test="${empty seriesList}">
-                        <tr class="empty-row">
-                            <td colspan="8">
-                                <i class="fas fa-film" style="font-size:2rem;display:block;margin-bottom:10px;color:#333;"></i>
-                                Chưa có phim nào. Hãy thêm phim mới bằng Slug KKPhim.
-                            </td>
-                        </tr>
-                    </c:if>
-                </tbody>
-            </table>
-        </div>
+                <div class="table-wrapper">
+                    <div class="table-filter">
+                        <input type="text" id="userSearch" placeholder="🔍 Tìm theo username hoặc email..." oninput="filterUserTable(this.value)">
+                    </div>
+                    <table id="userTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">Avatar</th>
+                                <th>Username</th>
+                                <th>Họ và tên</th>
+                                <th>Email</th>
+                                <th>Vai trò</th>
+                                <th>Trạng thái</th>
+                                <th style="text-align:right;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="u" items="${userList}">
+                                <tr data-username="${fn:escapeXml(u.id)}" data-email="${u.email}">
+                                    <td>
+                                        <div class="user-avatar" style="width:36px; height:36px; font-size: 0.9rem;">
+                                            ${fn:substring(u.fullname, 0, 1)}
+                                        </div>
+                                    </td>
+                                    <td><span style="font-weight:700; color:var(--text);">${u.id}</span></td>
+                                    <td>${u.fullname}</td>
+                                    <td>${u.email}</td>
+                                    <td>
+                                        <c:if test="${u.admin}">
+                                            <span class="status-badge" style="background:rgba(124,58,237,0.12); color:#a78bfa;">Admin</span>
+                                        </c:if>
+                                        <c:if test="${!u.admin}">
+                                            <span class="status-badge" style="background:var(--bg3); color:var(--text3);">User</span>
+                                        </c:if>
+                                    </td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${u.active}">
+                                                <span class="status-badge status-active">Hoạt động</span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="status-badge" style="background:rgba(229,9,20,0.12); color:#ff6b6b;">Đã khóa</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td>
+                                        <div class="action-btns" style="justify-content:flex-end;">
+                                            <c:if test="${u.id != sessionScope.user.id}">
+                                                <a href="${pageContext.request.contextPath}/admin/users/role?id=${u.id}" 
+                                                   class="btn-edit" style="background:rgba(124,58,237,0.1); border-color:rgba(124,58,237,0.2);"
+                                                   onclick="return confirm('Thay đổi quyền của người dùng này?')">
+                                                    <i class="fas fa-user-shield"></i> Quyền
+                                                </a>
+                                                <c:choose>
+                                                    <c:when test="${u.active}">
+                                                        <button class="btn-delete" onclick="toggleUser('${u.id}', 'lock')">
+                                                            <i class="fas fa-lock"></i> Khóa
+                                                        </button>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <button class="btn-edit" style="background:rgba(34,197,94,0.15); color:var(--green); border-color:rgba(34,197,94,0.3);" 
+                                                                onclick="toggleUser('${u.id}', 'unlock')">
+                                                            <i class="fas fa-unlock"></i> Mở khóa
+                                                        </button>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </c:if>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Hidden form for toggling user status -->
+                <form id="userToggleForm" action="${pageContext.request.contextPath}/admin/users/toggle" method="post" style="display:none;">
+                    <input type="hidden" name="id" id="toggleUserId">
+                    <input type="hidden" name="action" id="toggleUserAction">
+                    <input type="hidden" name="reason" id="toggleUserReason">
+                </form>
+            </c:when>
+            <c:otherwise>
+                <!-- Video Table Section (Default) -->
+                <div class="section-header">
+                    <div class="section-title">Danh sách phim</div>
+                    <button class="btn-add" onclick="openModal('createModal')">
+                        <i class="fas fa-plus"></i> Thêm phim mới
+                    </button>
+                </div>
+
+                <div class="table-wrapper">
+                    <div class="table-filter">
+                        <input type="text" id="tableSearch" placeholder="🔍 Tìm theo tên phim..." oninput="filterTable(this.value)">
+                    </div>
+                    <table id="videoTable">
+                        <thead>
+                            <tr>
+                                <th class="col-poster">Poster</th>
+                                <th>Tiêu đề / Slug</th>
+                                <th>Năm</th>
+                                <th>Thể loại</th>
+                                <th>Số tập</th>
+                                <th>Lượt xem</th>
+                                <th>Trạng thái</th>
+                                <th style="text-align:right;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="s" items="${seriesList}">
+                                <tr data-title="${fn:escapeXml(s.title)}">
+                                    <td>
+                                        <img src="${s.poster != 'N/A' && !empty s.poster ? s.poster : 'https://via.placeholder.com/48x64/1a1a24/666?text=?'}"
+                                             class="poster-thumb" alt="${s.title}">
+                                    </td>
+                                    <td>
+                                        <div class="video-title">${s.title}</div>
+                                        <div class="video-imdb">${s.slug}</div>
+                                    </td>
+                                    <td>${s.year}</td>
+                                    <td>${s.genre}</td>
+                                    <td>
+                                        <span class="rating-pill">
+                                            <i class="fas fa-list" style="font-size:0.65rem;"></i>
+                                            ${fn:length(s.episodes)}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="views-pill">
+                                            <i class="fas fa-eye" style="font-size:0.65rem;"></i>
+                                            ${s.views != null ? s.views : 0}
+                                        </span>
+                                    </td>
+                                            <td>
+                                        <c:choose>
+                                            <c:when test="${s.active}">
+                                                <span class="status-badge status-active">Active</span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="status-badge" style="background:rgba(229,9,20,0.12); color:#ff6b6b;">Inactive</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td>
+                                        <div class="action-btns" style="justify-content:flex-end;">
+                                            <button class="btn-edit" 
+                                                    data-id="${s.id}"
+                                                    data-title="${fn:escapeXml(s.title)}"
+                                                    data-desc="${fn:escapeXml(s.description)}"
+                                                    data-poster="${s.poster}"
+                                                    data-year="${s.year}"
+                                                    data-director="${fn:escapeXml(s.director)}"
+                                                    data-actors="${fn:escapeXml(s.actors)}"
+                                                    data-genre="${fn:escapeXml(s.genre)}"
+                                                    data-active="${s.active}"
+                                                    onclick="openEdit(this)">
+                                                <i class="fas fa-pen"></i> Sửa
+                                            </button>
+                                            <a href="${pageContext.request.contextPath}/admin/video/delete?id=${s.id}"
+                                               class="btn-delete"
+                                               onclick="return confirm('Xóa phim \'${s.title}\'?')">
+                                                <i class="fas fa-trash"></i> Xóa
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                            <c:if test="${empty seriesList}">
+                                <tr class="empty-row">
+                                    <td colspan="8">
+                                        <i class="fas fa-film" style="font-size:2rem;display:block;margin-bottom:10px;color:#333;"></i>
+                                        Chưa có phim nào. Hãy thêm phim mới bằng Slug KKPhim.
+                                    </td>
+                                </tr>
+                            </c:if>
+                        </tbody>
+                    </table>
+                </div>
+            </c:otherwise>
+        </c:choose>
     </div>
 </div>
 
@@ -595,6 +701,10 @@
                 <label>Mô tả</label>
                 <textarea id="editDesc" name="description" rows="4"></textarea>
             </div>
+            <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                <input type="checkbox" id="editActive" name="active" style="width:auto; cursor:pointer;">
+                <label for="editActive" style="margin-bottom:0; cursor:pointer;">Phim đang hoạt động (Active)</label>
+            </div>
             <div class="modal-footer">
                 <button type="button" class="btn-cancel" onclick="closeModal('editModal')">Hủy</button>
                 <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Lưu thay đổi</button>
@@ -619,6 +729,7 @@
         document.getElementById('editDirector').value = btn.dataset.director;
         document.getElementById('editActors').value = btn.dataset.actors;
         document.getElementById('editGenre').value = btn.dataset.genre;
+        document.getElementById('editActive').checked = btn.dataset.active === 'true';
         openModal('editModal');
     }
 
@@ -628,6 +739,33 @@
             const title = (row.dataset.title || '').toLowerCase();
             row.style.display = title.includes(q) ? '' : 'none';
         });
+    }
+
+    function filterUserTable(q) {
+        q = q.toLowerCase();
+        document.querySelectorAll('#userTable tbody tr').forEach(row => {
+            const text = (row.dataset.username + ' ' + row.dataset.email).toLowerCase();
+            row.style.display = text.includes(q) ? '' : 'none';
+        });
+    }
+
+    function toggleUser(id, action) {
+        let reason = "";
+        if (action === 'lock') {
+            reason = prompt("Nhập lý do khóa tài khoản này:");
+            if (reason === null) return; // Cancelled
+            if (reason.trim() === "") {
+                alert("Vui lòng nhập lý do khóa!");
+                return;
+            }
+        } else {
+            if (!confirm("Bạn có chắc chắn muốn mở khóa cho người dùng này?")) return;
+        }
+
+        document.getElementById('toggleUserId').value = id;
+        document.getElementById('toggleUserAction').value = action;
+        document.getElementById('toggleUserReason').value = reason;
+        document.getElementById('userToggleForm').submit();
     }
 
     // ESC to close modals

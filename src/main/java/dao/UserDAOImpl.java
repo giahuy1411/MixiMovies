@@ -79,16 +79,16 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public void deleteById(String id) {
+    public void setActive(String id, boolean active) {
         EntityManager em = XJPA.getEntityManager();
         try {
-            User entity = em.find(User.class, id);
             em.getTransaction().begin();
-            em.remove(entity);
+            User user = em.find(User.class, id);
+            if (user != null) {
+                user.setActive(active);
+                em.merge(user);
+            }
             em.getTransaction().commit();
-        } catch (Exception e) {
-            em.getTransaction().rollback();
-            throw e;
         } finally {
             em.close();
         }

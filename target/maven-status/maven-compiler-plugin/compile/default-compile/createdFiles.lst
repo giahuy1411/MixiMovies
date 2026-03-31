@@ -1,5 +1,6 @@
 servlet\LogoutServlet.class
 entity\Share.class
+servlet\UserManagerServlet.class
 utils\Mailer.class
 dao\FavoriteDAOImpl.class
 servlet\AuthFilter.class

@@ -21,6 +21,6 @@ public interface UserDAO {
 	/** Cập nhật */
 	void update(User item);
 
-	/** Xóa theo mã */
-	void deleteById(String id);
+	/** Cập nhật trạng thái hoạt động */
+	void setActive(String id, boolean active);
 }

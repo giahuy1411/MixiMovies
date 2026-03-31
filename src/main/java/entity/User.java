@@ -22,6 +22,9 @@ public class User {
     @Column(name = "Admin")
     private Boolean admin;
 
+    @Column(name = "Active")
+    private Boolean active = true;
+
     public String getId() {
         return id;
     }
@@ -33,7 +36,7 @@ public class User {
     public String getPassword() {
         return password;
     }
-    
+
     public void setPassword(String password) {
         this.password = password;
     }
@@ -41,7 +44,7 @@ public class User {
     public String getEmail() {
         return email;
     }
-    
+
     public void setEmail(String email) {
         this.email = email;
     }
@@ -49,7 +52,7 @@ public class User {
     public String getFullname() {
         return fullname;
     }
-    
+
     public void setFullname(String fullname) {
         this.fullname = fullname;
     }
@@ -57,8 +60,16 @@ public class User {
     public Boolean getAdmin() {
         return admin;
     }
-    
+
     public void setAdmin(Boolean admin) {
         this.admin = admin;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 }
