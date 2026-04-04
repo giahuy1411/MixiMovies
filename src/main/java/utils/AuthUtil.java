@@ -22,17 +22,18 @@ public class AuthUtil {
     }
 
     /**
-     * Kiểm tra xem người dùng đã đăng nhập hay chưa.
+     * Kiểm tra xem người dùng đã đăng nhập và tài khoản CÒN HOẠT ĐỘNG hay chưa.
      */
     public static boolean isLogin(HttpServletRequest req) {
-        return get(req) != null;
+        User user = get(req);
+        return user != null && Boolean.TRUE.equals(user.getActive());
     }
 
     /**
-     * Kiểm tra xem người dùng hiện tại có phải là Quản trị viên (Admin) hay không.
+     * Kiểm tra xem người dùng hiện tại có phải là Quản trị viên (Admin) VÀ ĐANG HOẠT ĐỘNG hay không.
      */
     public static boolean isAdmin(HttpServletRequest req) {
         User user = get(req);
-        return user != null && Boolean.TRUE.equals(user.getAdmin());
+        return user != null && Boolean.TRUE.equals(user.getAdmin()) && Boolean.TRUE.equals(user.getActive());
     }
 }

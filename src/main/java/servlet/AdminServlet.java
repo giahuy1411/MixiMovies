@@ -23,12 +23,17 @@ import utils.KKPhimClient;
     "/admin/video/update",
     "/admin/video/delete",
     "/admin/users",
-    "/admin/users/role"
+    "/admin/users/role",
+    "/admin/categories",
+    "/admin/categories/create",
+    "/admin/categories/update",
+    "/admin/categories/delete"
 })
 public class AdminServlet extends HttpServlet {
 
     private final SeriesDAO seriesDao = new SeriesDAOImpl();
     private final UserDAO userDAO = new UserDAOImpl();
+    private final dao.CategoryDAO categoryDAO = new dao.CategoryDAOImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -37,28 +42,54 @@ public class AdminServlet extends HttpServlet {
         String tab = req.getParameter("tab");
         if (tab == null) tab = "video";
 
-        if (uri.endsWith("/admin/video") || uri.endsWith("/admin/users")) {
-            List<Series> seriesList = seriesDao.findAll();
-            List<User> userList = userDAO.findAll();
+        if (uri.endsWith("/admin/video") || uri.endsWith("/admin/users") || uri.endsWith("/admin/categories")) {
+            // Pagination & Sorting Params
+            int page = 1;
+            int size = 10;
+            String sortBy = req.getParameter("sortBy");
+            String sortDir = req.getParameter("sortDir");
+            if (req.getParameter("p") != null) page = Integer.parseInt(req.getParameter("p"));
+            if (sortBy == null) sortBy = "createdAt";
+            if (sortDir == null) sortDir = "desc";
 
-            // Stats (Java 7 compatible)
-            long totalVideos = seriesList.size();
+            List<Series> seriesList = seriesDao.findAll(page, size, sortBy, sortDir);
+            List<User> userList = userDAO.findAll();
+            long totalVideos = seriesDao.count();
             long totalUsers = userList.size();
-            long totalViews = 0;
-            long activeVideosCount = 0;
-            for (Series s : seriesList) {
-                if (s.getViews() != null) totalViews += s.getViews();
-                if (s.getActive() != null && s.getActive()) {
-                    activeVideosCount++;
+            
+            // Analytics: Views by Genre
+            List<Object[]> genreStats = seriesDao.getViewsByGenre();
+            StringBuilder labels = new StringBuilder("[");
+            StringBuilder data = new StringBuilder("[");
+            for (int i = 0; i < genreStats.size(); i++) {
+                Object[] row = genreStats.get(i);
+                String genre = (row[0] == null) ? "Chưa phân loại" : row[0].toString();
+                long views = (row[1] == null) ? 0 : (Long) row[1];
+                
+                labels.append("\"").append(genre).append("\"");
+                data.append(views);
+                
+                if (i < genreStats.size() - 1) {
+                    labels.append(",");
+                    data.append(",");
                 }
             }
+            labels.append("]");
+            data.append("]");
+
+            List<entity.Category> categoryList = categoryDAO.findAll();
 
             req.setAttribute("seriesList", seriesList);
             req.setAttribute("userList", userList);
+            req.setAttribute("categoryList", categoryList);
             req.setAttribute("totalVideos", totalVideos);
             req.setAttribute("totalUsers", totalUsers);
-            req.setAttribute("totalViews", totalViews);
-            req.setAttribute("activeVideos", activeVideosCount);
+            req.setAttribute("totalPages", (int) Math.ceil((double) totalVideos / size));
+            req.setAttribute("currentPage", page);
+            req.setAttribute("sortBy", sortBy);
+            req.setAttribute("sortDir", sortDir);
+            req.setAttribute("chartLabels", labels.toString());
+            req.setAttribute("chartData", data.toString());
             req.setAttribute("currentTab", tab);
 
             req.getRequestDispatcher("/views/admin.jsp").forward(req, resp);
@@ -80,6 +111,13 @@ public class AdminServlet extends HttpServlet {
                 userDAO.update(u);
             }
             resp.sendRedirect(req.getContextPath() + "/admin/users?tab=users");
+            return;
+        }
+
+        if (uri.contains("/admin/categories/delete")) {
+            Long id = Long.parseLong(req.getParameter("id"));
+            categoryDAO.delete(id);
+            resp.sendRedirect(req.getContextPath() + "/admin/categories?tab=category");
             return;
         }
     }
@@ -133,11 +171,44 @@ public class AdminServlet extends HttpServlet {
                     s.setDirector(req.getParameter("director"));
                     s.setActors(req.getParameter("actors"));
                     s.setGenre(req.getParameter("genre"));
+                    String catId = req.getParameter("categoryId");
+                    if (catId != null && !catId.isEmpty()) {
+                        s.setCategory(categoryDAO.findById(Long.parseLong(catId)));
+                    }
                     s.setActive("on".equals(req.getParameter("active")));
                     seriesDao.update(s);
                 }
             }
             resp.sendRedirect(req.getContextPath() + "/admin/video");
+            return;
+        }
+
+        if (uri.contains("/admin/categories/create")) {
+            entity.Category cat = new entity.Category();
+            cat.setName(req.getParameter("name"));
+            cat.setSlug(req.getParameter("slug"));
+            cat.setDescription(req.getParameter("description"));
+            String orderStr = req.getParameter("order");
+            cat.setOrder(orderStr != null && !orderStr.isEmpty() ? Integer.parseInt(orderStr) : 0);
+            cat.setActive("on".equals(req.getParameter("active")));
+            categoryDAO.create(cat);
+            resp.sendRedirect(req.getContextPath() + "/admin/categories?tab=category");
+            return;
+        }
+
+        if (uri.contains("/admin/categories/update")) {
+            Long id = Long.parseLong(req.getParameter("id"));
+            entity.Category cat = categoryDAO.findById(id);
+            if (cat != null) {
+                cat.setName(req.getParameter("name"));
+                cat.setSlug(req.getParameter("slug"));
+                cat.setDescription(req.getParameter("description"));
+                String orderStr = req.getParameter("order");
+                cat.setOrder(orderStr != null && !orderStr.isEmpty() ? Integer.parseInt(orderStr) : 0);
+                cat.setActive("on".equals(req.getParameter("active")));
+                categoryDAO.update(cat);
+            }
+            resp.sendRedirect(req.getContextPath() + "/admin/categories?tab=category");
             return;
         }
     }

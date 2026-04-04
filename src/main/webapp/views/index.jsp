@@ -288,6 +288,14 @@
         ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+        .filter-status {
+            padding: 0 0 18px; display: flex; align-items: center; justify-content: space-between;
+        }
+        .clear-filter {
+            color: var(--accent); font-size: 0.82rem; text-decoration: none; font-weight: 600;
+        }
+        .clear-filter:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -319,9 +327,17 @@
 
 <!-- Movie Listing -->
 <main class="main-content">
+
     <div class="section-header">
-        <div class="section-title">Tất cả phim</div>
-        <span class="section-count" id="movieCount">${fn:length(seriesList)} phim</span>
+        <div class="section-title">
+            ${empty currentCategory ? 'Tất cả phim' : currentCategory.name}
+        </div>
+        <c:if test="${not empty currentCategory}">
+            <a href="${pageContext.request.contextPath}/home" class="clear-filter"><i class="fas fa-times"></i> Xóa lọc (${fn:length(seriesList)} kết quả)</a>
+        </c:if>
+        <c:if test="${empty currentCategory}">
+            <span class="section-count" id="movieCount">${fn:length(seriesList)} phim</span>
+        </c:if>
     </div>
 
     <div class="movie-grid" id="movieGrid">

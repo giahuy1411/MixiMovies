@@ -4,8 +4,11 @@ servlet\UserManagerServlet.class
 utils\Mailer.class
 dao\FavoriteDAOImpl.class
 servlet\AuthFilter.class
+dao\CategoryDAO.class
+dao\CategoryDAOImpl.class
 entity\Favorite.class
 servlet\LoginServlet.class
+entity\Category.class
 servlet\DetailServlet.class
 servlet\Utf8Filter.class
 utils\KKPhimClient.class

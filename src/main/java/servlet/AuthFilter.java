@@ -28,7 +28,21 @@ public class AuthFilter implements Filter {
         HttpServletResponse resp = (HttpServletResponse) response;
 
         String uri = req.getRequestURI();
+
+        // Bỏ qua các file tĩnh (css, js, images, ...) để tăng hiệu suất
+        if (uri.contains(".css") || uri.contains(".js") || uri.contains(".png") || 
+            uri.contains(".jpg") || uri.contains(".jpeg") || uri.contains(".woff") || uri.contains(".ttf")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         User user = utils.AuthUtil.get(req);
+
+        // Nếu user bị ban (Active = false) nhưng vẫn còn session, huỷ session.
+        if (user != null && !Boolean.TRUE.equals(user.getActive())) {
+            req.getSession().invalidate();
+            user = null;
+        }
 
         // ===== ADMIN =====
         if (uri.contains("/admin")) {
@@ -39,13 +53,17 @@ public class AuthFilter implements Filter {
             }
 
             if (!utils.AuthUtil.isAdmin(req)) {
-                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Ban khong co quyen truy cap trang nay");
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập trang quản trị này");
                 return;
             }
         }
 
         // ===== CẦN LOGIN =====
-        boolean needLogin = uri.contains("/addComment"); // Các chức năng yêu cầu user phải đăng nhập
+        // Thêm các uri cần bắt buộc người dùng đăng nhập tại đây
+        boolean needLogin = uri.contains("/addComment") 
+                         || uri.contains("/favorite")
+                         || uri.contains("/like")
+                         || uri.contains("/share");
 
         if (needLogin && !utils.AuthUtil.isLogin(req)) {
             req.getSession(true).setAttribute(SECURITY_URI, uri);
@@ -54,10 +72,8 @@ public class AuthFilter implements Filter {
         }
 
         // ===== PUBLIC (Không yêu cầu login) =====
-        // Mọi request còn lại bao gồm:
-        // Trang chủ (/home), chi tiết phim (/watch), đăng nhập (/login), đăng ký (/register)
-        // và tài nguyên tĩnh (css, js, images) đều được public.
-        
+        // Mọi request còn lại (home, watch, login, register, vv...)
+
         chain.doFilter(request, response);
     }
     

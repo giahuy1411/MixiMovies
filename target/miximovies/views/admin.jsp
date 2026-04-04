@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -135,14 +136,14 @@
 
         /* ─── STATS CARDS ─── */
         .stats-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
-            margin-bottom: 28px;
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+            flex: 1;
         }
         .stat-card {
-            background: var(--card);
+            background: var(--bg3);
             border: 1px solid var(--border);
-            border-radius: 12px; padding: 20px;
-            display: flex; align-items: center; gap: 16px;
+            border-radius: 12px; padding: 18px;
+            display: flex; align-items: center; gap: 14px;
             transition: transform 0.2s;
         }
         .stat-card:hover { transform: translateY(-2px); }
@@ -348,6 +349,44 @@
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+
+        /* Pagination Styles */
+        .pagination {
+            display: flex; justify-content: center; align-items: center;
+            gap: 8px; margin-top: 24px; padding-bottom: 20px;
+        }
+        .page-link {
+            padding: 8px 14px; background: var(--bg3); color: var(--text2);
+            border: 1px solid var(--border); border-radius: 6px;
+            text-decoration: none; font-size: 0.85rem; font-weight: 600;
+            transition: all 0.2s;
+        }
+        .page-link:hover, .page-link.active {
+            background: var(--accent); color: #fff; border-color: var(--accent);
+        }
+        .page-link.disabled {
+            opacity: 0.4; cursor: not-allowed; pointer-events: none;
+        }
+        
+        .sort-header {
+            cursor: pointer; position: relative;
+            user-select: none; transition: color 0.2s;
+        }
+        .sort-header:hover { color: var(--accent) !important; }
+        .sort-icon { font-size: 0.7rem; margin-left: 4px; opacity: 0.5; }
+        .sort-header.active { color: #fff !important; }
+        .sort-header.active .sort-icon { opacity: 1; color: var(--accent); }
+
+        .dashboard-header-flex {
+            display: flex; gap: 24px; margin-bottom: 32px;
+            align-items: stretch;
+        }
+        .chart-box {
+            flex: 0 0 400px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 24px;
+            display: flex; flex-direction: column;
+        }
     </style>
 </head>
 <body>
@@ -381,6 +420,10 @@
             <i class="fas fa-users"></i> Quản lý Người dùng
             <span class="badge-count">${totalUsers}</span>
         </a>
+        <a href="${pageContext.request.contextPath}/admin/categories?tab=category" class="sidebar-link ${currentTab == 'category' ? 'active' : ''}">
+            <i class="fas fa-list"></i> Quản lý Thể loại
+            <span class="badge-count">${fn:length(categoryList)}</span>
+        </a>
         <div class="nav-group-label">Điều hướng</div>
         <a href="${pageContext.request.contextPath}/home" class="sidebar-link">
             <i class="fas fa-home"></i> Trang chủ
@@ -411,35 +454,51 @@
 
     <div class="content-area">
         <!-- Stats -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon red"><i class="fas fa-film"></i></div>
-                <div>
-                    <h3>${totalVideos}</h3>
-                    <p>Tổng số phim</p>
+        <div class="dashboard-header-flex">
+            <!-- Stats (Left) -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon red"><i class="fas fa-film"></i></div>
+                    <div>
+                        <h3>${totalVideos}</h3>
+                        <p>Tổng số phim</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fas fa-eye"></i></div>
+                    <div>
+                        <h3>${totalViews}</h3>
+                        <p>Tổng lượt xem</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon gold"><i class="fas fa-users"></i></div>
+                    <div>
+                        <h3>${totalUsers}</h3>
+                        <p>Tổng người dùng</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                    <div>
+                        <h3>${activeVideos}</h3>
+                        <p>Phim đang hoạt động</p>
+                    </div>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon purple"><i class="fas fa-eye"></i></div>
-                <div>
-                    <h3>${totalViews}</h3>
-                    <p>Tổng lượt xem</p>
+
+            <!-- Analytics Chart (Right) -->
+            <c:if test="${currentTab == 'video'}">
+                <div class="chart-box">
+                    <div class="section-title" style="margin-bottom: 15px; font-size: 0.9rem;">
+                        <i class="fas fa-chart-pie" style="color:var(--accent); margin-right:8px;"></i>
+                        Phân tích Thể loại
+                    </div>
+                    <div style="flex: 1; min-height: 240px; position: relative;">
+                        <canvas id="viewsGenreChart"></canvas>
+                    </div>
                 </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon gold"><i class="fas fa-users"></i></div>
-                <div>
-                    <h3>${totalUsers}</h3>
-                    <p>Tổng người dùng</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
-                <div>
-                    <h3>${activeVideos}</h3>
-                    <p>Phim đang hoạt động</p>
-                </div>
-            </div>
+            </c:if>
         </div>
 
         <!-- Error alert -->
@@ -538,6 +597,62 @@
                     <input type="hidden" name="reason" id="toggleUserReason">
                 </form>
             </c:when>
+            <c:when test="${currentTab == 'category'}">
+                <!-- Category Management Section -->
+                <div class="section-header">
+                    <div class="section-title">Danh sách Thể loại</div>
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <input type="text" placeholder="Tìm thể loại..." oninput="filterCategoryTable(this.value)" 
+                               style="background:rgba(255,255,255,0.05); border:1px solid var(--border); padding:8px 12px; border-radius:8px; color:#fff; font-size:0.85rem; width:200px;">
+                        <button class="btn-add" onclick="openModal('addCategoryModal')">
+                            <i class="fas fa-plus"></i> Thêm thể loại
+                        </button>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table id="categoryTable">
+                        <thead>
+                            <tr>
+                                <th>Tên thể loại</th>
+                                <th>Slug</th>
+                                <th>Trạng thái</th>
+                                <th style="text-align:right;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="cat" items="${categoryList}">
+                                <tr>
+                                    <td><strong>${cat.name}</strong></td>
+                                    <td><code>${cat.slug}</code></td>
+                                    <td>
+                                        <span class="status-badge ${cat.active ? 'status-active' : ''}">
+                                            ${cat.active ? 'Hoạt động' : 'Tạm ẩn'}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="action-btns" style="justify-content:flex-end;">
+                                            <button class="btn-edit" 
+                                                    data-id="${cat.id}" 
+                                                    data-name="${fn:escapeXml(cat.name)}" 
+                                                    data-slug="${cat.slug}"
+                                                    data-desc="${fn:escapeXml(cat.description)}"
+                                                    data-order="${cat.order}"
+                                                    data-active="${cat.active}"
+                                                    onclick="openEditCat(this)">
+                                                <i class="fas fa-pen"></i> Sửa
+                                            </button>
+                                            <a href="${pageContext.request.contextPath}/admin/categories/delete?id=${cat.id}" 
+                                               class="btn-delete" onclick="return confirm('Xóa thể loại này?')">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </c:when>
             <c:otherwise>
                 <!-- Video Table Section (Default) -->
                 <div class="section-header">
@@ -555,12 +670,24 @@
                         <thead>
                             <tr>
                                 <th class="col-poster">Poster</th>
-                                <th>Tiêu đề / Slug</th>
-                                <th>Năm</th>
+                                <th class="sort-header ${sortBy == 'title' ? 'active' : ''}" 
+                                    onclick="location.href='?tab=video&sortBy=title&sortDir=${sortBy == 'title' && sortDir == 'asc' ? 'desc' : 'asc'}&p=${currentPage}'">
+                                    Tiêu đề / Slug <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="sort-header ${sortBy == 'year' ? 'active' : ''}"
+                                    onclick="location.href='?tab=video&sortBy=year&sortDir=${sortBy == 'year' && sortDir == 'asc' ? 'desc' : 'asc'}&p=${currentPage}'">
+                                    Năm <i class="fas fa-sort sort-icon"></i>
+                                </th>
                                 <th>Thể loại</th>
                                 <th>Số tập</th>
-                                <th>Lượt xem</th>
-                                <th>Trạng thái</th>
+                                <th class="sort-header ${sortBy == 'views' ? 'active' : ''}"
+                                    onclick="location.href='?tab=video&sortBy=views&sortDir=${sortBy == 'views' && sortDir == 'asc' ? 'desc' : 'asc'}&p=${currentPage}'">
+                                    Lượt xem <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="sort-header ${sortBy == 'createdAt' ? 'active' : ''}"
+                                    onclick="location.href='?tab=video&sortBy=createdAt&sortDir=${sortBy == 'createdAt' && sortDir == 'asc' ? 'desc' : 'asc'}&p=${currentPage}'">
+                                    Ngày đăng <i class="fas fa-sort sort-icon"></i>
+                                </th>
                                 <th style="text-align:right;">Hành động</th>
                             </tr>
                         </thead>
@@ -610,6 +737,7 @@
                                                     data-director="${fn:escapeXml(s.director)}"
                                                     data-actors="${fn:escapeXml(s.actors)}"
                                                     data-genre="${fn:escapeXml(s.genre)}"
+                                                    data-category-id="${s.category != null ? s.category.id : ''}"
                                                     data-active="${s.active}"
                                                     onclick="openEdit(this)">
                                                 <i class="fas fa-pen"></i> Sửa
@@ -633,6 +761,24 @@
                             </c:if>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <a href="?tab=video&sortBy=${sortBy}&sortDir=${sortDir}&p=${currentPage - 1}" 
+                       class="page-link ${currentPage <= 1 ? 'disabled' : ''}">
+                        <i class="fas fa-chevron-left"></i> Trước
+                    </a>
+                    
+                    <c:forEach begin="1" end="${totalPages}" var="page">
+                        <a href="?tab=video&sortBy=${sortBy}&sortDir=${sortDir}&p=${page}" 
+                           class="page-link ${currentPage == page ? 'active' : ''}">${page}</a>
+                    </c:forEach>
+                    
+                    <a href="?tab=video&sortBy=${sortBy}&sortDir=${sortDir}&p=${currentPage + 1}" 
+                       class="page-link ${currentPage >= totalPages ? 'disabled' : ''}">
+                        Sau <i class="fas fa-chevron-right"></i>
+                    </a>
                 </div>
             </c:otherwise>
         </c:choose>
@@ -684,9 +830,18 @@
                     <label>Đạo diễn</label>
                     <input id="editDirector" name="director">
                 </div>
+                <div class="form-group">
+                    <label>Thể loại chính</label>
+                    <select name="categoryId" id="editCategoryId">
+                        <option value="">-- Chọn thể loại --</option>
+                        <c:forEach var="cat" items="${categoryList}">
+                            <option value="${cat.id}">${cat.name}</option>
+                        </c:forEach>
+                    </select>
+                </div>
             </div>
             <div class="form-group">
-                <label>Thể loại</label>
+                <label>Thể loại (String)</label>
                 <input id="editGenre" name="genre">
             </div>
             <div class="form-group">
@@ -713,47 +868,132 @@
     </div>
 </div>
 
+<!-- ─── MODAL: EDIT CATEGORY ─── -->
+<div class="modal-overlay" id="editCategoryModal" onclick="closeModalOutside(event,'editCategoryModal')">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title">Chỉnh sửa Thể loại</div>
+            <button class="modal-close" onclick="closeModal('editCategoryModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <form action="${pageContext.request.contextPath}/admin/categories/update" method="post">
+            <input type="hidden" name="id" id="editCatId">
+            <div class="form-group">
+                <label>Tên thể loại</label>
+                <input name="name" id="editCatName" required>
+            </div>
+            <div class="form-group">
+                <label>Slug</label>
+                <input name="slug" id="editCatSlug" required>
+            </div>
+            <div class="form-group">
+                <label>Mô tả</label>
+                <textarea name="description" id="editCatDesc" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Thứ tự (Order)</label>
+                <input name="order" id="editCatOrder" type="number" value="0">
+            </div>
+            <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                <input type="checkbox" id="editCatActive" name="active" style="width:auto; cursor:pointer;">
+                <label for="editCatActive" style="margin-bottom:0; cursor:pointer;">Hoạt động</label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeModal('editCategoryModal')">Hủy</button>
+                <button type="submit" class="btn-submit">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ─── MODAL: ADD CATEGORY ─── -->
+<div class="modal-overlay" id="addCategoryModal" onclick="closeModalOutside(event,'addCategoryModal')">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title">Thêm Thể loại mới</div>
+            <button class="modal-close" onclick="closeModal('addCategoryModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <form action="${pageContext.request.contextPath}/admin/categories/create" method="post">
+            <div class="form-group">
+                <label>Tên thể loại</label>
+                <input name="name" placeholder="Ví dụ: Hành động" required>
+            </div>
+            <div class="form-group">
+                <label>Slug</label>
+                <input name="slug" placeholder="Ví dụ: hanh-dong" required>
+            </div>
+            <div class="form-group">
+                <label>Thứ tự (Order)</label>
+                <input name="order" type="number" value="0">
+            </div>
+            <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                <input type="checkbox" name="active" checked style="width:auto; cursor:pointer;">
+                <label style="margin-bottom:0; cursor:pointer;">Hiển thị trên trang chủ</label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeModal('addCategoryModal')">Hủy</button>
+                <button type="submit" class="btn-submit">Thêm ngay</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     function openModal(id) { document.getElementById(id).classList.add('show'); }
     function closeModal(id) { document.getElementById(id).classList.remove('show'); }
-    function closeModalOutside(e, id) {
-        if (e.target === document.getElementById(id)) closeModal(id);
-    }
+    function closeModalOutside(e, id) { if(e.target.id === id) closeModal(id); }
 
     function openEdit(btn) {
         document.getElementById('editId').value = btn.dataset.id;
         document.getElementById('editTitle').value = btn.dataset.title;
-        document.getElementById('editDesc').value = btn.dataset.desc;
-        document.getElementById('editPoster').value = btn.dataset.poster;
         document.getElementById('editYear').value = btn.dataset.year;
+        document.getElementById('editPoster').value = btn.dataset.poster;
+        document.getElementById('editDesc').value = btn.dataset.desc;
         document.getElementById('editDirector').value = btn.dataset.director;
         document.getElementById('editActors').value = btn.dataset.actors;
         document.getElementById('editGenre').value = btn.dataset.genre;
+        document.getElementById('editCategoryId').value = btn.dataset.categoryId;
         document.getElementById('editActive').checked = btn.dataset.active === 'true';
         openModal('editModal');
+    }
+
+    function openEditCat(btn) {
+        document.getElementById('editCatId').value = btn.dataset.id;
+        document.getElementById('editCatName').value = btn.dataset.name;
+        document.getElementById('editCatSlug').value = btn.dataset.slug;
+        document.getElementById('editCatDesc').value = btn.dataset.desc || '';
+        document.getElementById('editCatOrder').value = btn.dataset.order || 0;
+        document.getElementById('editCatActive').checked = btn.dataset.active === 'true';
+        openModal('editCategoryModal');
     }
 
     function filterTable(q) {
         q = q.toLowerCase();
         document.querySelectorAll('#videoTable tbody tr[data-title]').forEach(row => {
-            const title = (row.dataset.title || '').toLowerCase();
+            const title = row.dataset.title.toLowerCase();
             row.style.display = title.includes(q) ? '' : 'none';
         });
     }
 
-    function filterUserTable(q) {
+    function filterCategoryTable(q) {
         q = q.toLowerCase();
-        document.querySelectorAll('#userTable tbody tr').forEach(row => {
-            const text = (row.dataset.username + ' ' + row.dataset.email).toLowerCase();
+        document.querySelectorAll('#categoryTable tbody tr').forEach(row => {
+            const text = row.innerText.toLowerCase();
             row.style.display = text.includes(q) ? '' : 'none';
         });
     }
 
-    function toggleUser(id, action) {
+    function toggleRole(id) {
+        if(confirm('Đổi vai trò người dùng này?')) {
+            window.location.href = '${pageContext.request.contextPath}/admin/users/role?id=' + id;
+        }
+    }
+
+    function toggleUserStatus(id, active) {
+        const action = active ? "unlock" : "lock";
         let reason = "";
-        if (action === 'lock') {
+        if (!active) {
             reason = prompt("Nhập lý do khóa tài khoản này:");
-            if (reason === null) return; // Cancelled
+            if (reason === null) return;
             if (reason.trim() === "") {
                 alert("Vui lòng nhập lý do khóa!");
                 return;
@@ -768,13 +1008,53 @@
         document.getElementById('userToggleForm').submit();
     }
 
-    // ESC to close modals
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
             closeModal('createModal');
             closeModal('editModal');
+            closeModal('addCategoryModal');
+            closeModal('editCategoryModal');
         }
     });
+
+    // Initialize chart only if the canvas exists (which means we are in the video tab)
+    const chartCanvas = document.getElementById('viewsGenreChart');
+    if (chartCanvas) {
+        const ctx = chartCanvas.getContext('2d');
+        // Avoid JS linting errors by keeping EL within quotes
+        const labelsStr = '${empty chartLabels ? "[]" : chartLabels}';
+        const dataStr = '${empty chartData ? "[]" : chartData}';
+        const labels = JSON.parse(labelsStr);
+        const data = JSON.parse(dataStr);
+        
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: [
+                        '#e50914', '#7c3aed', '#f5c518', '#22c55e', '#3b82f6', 
+                        '#ef4444', '#8b5cf6', '#facc15', '#10b981', '#60a5fa'
+                    ],
+                    borderWidth: 1,
+                    borderColor: '#15151f',
+                    hoverOffset: 15
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                layout: { padding: 10 },
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: '#9090b0', font: { family: 'Inter', size: 12 } }
+                    }
+                }
+            }
+        });
+    }
 </script>
 </body>
 </html>

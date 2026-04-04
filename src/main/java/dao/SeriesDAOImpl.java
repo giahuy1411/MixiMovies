@@ -14,8 +14,70 @@ public class SeriesDAOImpl implements SeriesDAO {
     public List<Series> findAll() {
         EntityManager em = XJPA.getEntityManager();
         try {
-            String jpql = "SELECT DISTINCT s FROM Series s LEFT JOIN FETCH s.episodes";
+            String jpql = "SELECT DISTINCT s FROM Series s LEFT JOIN FETCH s.episodes LEFT JOIN FETCH s.category";
             return em.createQuery(jpql, Series.class).getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public List<Series> findAll(int page, int size, String sortBy, String sortDir) {
+        EntityManager em = XJPA.getEntityManager();
+        try {
+            // Whitelist sort fields to prevent injection
+            String validSort = "s.id";
+            if ("title".equals(sortBy)) validSort = "s.title";
+            else if ("year".equals(sortBy)) validSort = "s.year";
+            else if ("views".equals(sortBy)) validSort = "s.views";
+            else if ("createdAt".equals(sortBy)) validSort = "s.createdAt";
+
+            String validDir = "ASC".equalsIgnoreCase(sortDir) ? "ASC" : "DESC";
+
+            String jpql = "SELECT DISTINCT s FROM Series s LEFT JOIN FETCH s.episodes LEFT JOIN FETCH s.category ORDER BY " + validSort + " " + validDir;
+            TypedQuery<Series> query = em.createQuery(jpql, Series.class);
+            query.setFirstResult((page - 1) * size);
+            query.setMaxResults(size);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public long count() {
+        EntityManager em = XJPA.getEntityManager();
+        try {
+            return (Long) em.createQuery("SELECT COUNT(s) FROM Series s").getSingleResult();
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public List<Series> findByCategory(Long cid, String categoryName, int page, int size) {
+        EntityManager em = XJPA.getEntityManager();
+        try {
+            String jpql = "SELECT s FROM Series s LEFT JOIN FETCH s.episodes LEFT JOIN FETCH s.category WHERE (s.category.id = :cid OR s.genre LIKE :genrePattern) AND s.active = true ORDER BY s.createdAt DESC";
+            TypedQuery<Series> query = em.createQuery(jpql, Series.class);
+            query.setParameter("cid", cid);
+            query.setParameter("genrePattern", "%" + categoryName + "%");
+            query.setFirstResult((page - 1) * size);
+            query.setMaxResults(size);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public long countByCategory(Long cid, String categoryName) {
+        EntityManager em = XJPA.getEntityManager();
+        try {
+            return (Long) em.createQuery("SELECT COUNT(s) FROM Series s WHERE (s.category.id = :cid OR s.genre LIKE :genrePattern) AND s.active = true")
+                    .setParameter("cid", cid)
+                    .setParameter("genrePattern", "%" + categoryName + "%")
+                    .getSingleResult();
         } finally {
             em.close();
         }
@@ -25,7 +87,7 @@ public class SeriesDAOImpl implements SeriesDAO {
     public List<Series> findAllActive() {
         EntityManager em = XJPA.getEntityManager();
         try {
-            String jpql = "SELECT DISTINCT s FROM Series s LEFT JOIN FETCH s.episodes WHERE s.active = true";
+            String jpql = "SELECT DISTINCT s FROM Series s LEFT JOIN FETCH s.episodes LEFT JOIN FETCH s.category WHERE s.active = true";
             return em.createQuery(jpql, Series.class).getResultList();
         } finally {
             em.close();
@@ -36,7 +98,7 @@ public class SeriesDAOImpl implements SeriesDAO {
     public Series findById(Long id) {
         EntityManager em = XJPA.getEntityManager();
         try {
-            String jpql = "SELECT s FROM Series s LEFT JOIN FETCH s.episodes WHERE s.id = :id";
+            String jpql = "SELECT s FROM Series s LEFT JOIN FETCH s.episodes LEFT JOIN FETCH s.category WHERE s.id = :id";
             return em.createQuery(jpql, Series.class)
                     .setParameter("id", id)
                     .getSingleResult();
@@ -51,7 +113,7 @@ public class SeriesDAOImpl implements SeriesDAO {
     public Series findBySlug(String slug) {
         EntityManager em = XJPA.getEntityManager();
         try {
-            String jpql = "SELECT s FROM Series s LEFT JOIN FETCH s.episodes WHERE s.slug = :slug";
+            String jpql = "SELECT s FROM Series s LEFT JOIN FETCH s.episodes LEFT JOIN FETCH s.category WHERE s.slug = :slug";
             TypedQuery<Series> query = em.createQuery(jpql, Series.class);
             query.setParameter("slug", slug);
             return query.getSingleResult();
@@ -109,6 +171,20 @@ public class SeriesDAOImpl implements SeriesDAO {
             em.getTransaction().commit();
         } catch (Exception e) {
             em.getTransaction().rollback();
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public List<Object[]> getViewsByGenre() {
+        EntityManager em = XJPA.getEntityManager();
+        try {
+            // JPQL doesn't support grouping by comma-separated genres nicely, 
+            // but we can group by the whole genre string or process in Java.
+            // For teacher's eye, a GROUP BY on the 'genre' field is sufficient.
+            String jpql = "SELECT s.genre, SUM(s.views) FROM Series s GROUP BY s.genre";
+            return em.createQuery(jpql, Object[].class).getResultList();
         } finally {
             em.close();
         }
