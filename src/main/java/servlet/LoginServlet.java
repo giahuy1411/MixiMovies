@@ -50,7 +50,7 @@ public class LoginServlet extends HttpServlet {
         }
 
         HttpSession session = req.getSession();
-        session.setAttribute("user", user);
+        session.setAttribute(utils.AuthUtil.SESSION_USER_KEY, user);
         resp.sendRedirect(req.getContextPath() + "/home");
     }
 }

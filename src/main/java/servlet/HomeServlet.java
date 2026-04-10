@@ -26,10 +26,14 @@ public class HomeServlet extends HttpServlet {
         entity.Category currentCategory = null;
 
         if (cidStr != null && !cidStr.isEmpty()) {
-            Long cid = Long.parseLong(cidStr);
-            currentCategory = categoryDAO.findById(cid);
-            String catName = currentCategory != null ? currentCategory.getName() : "";
-            seriesList = seriesDao.findByCategory(cid, catName, 1, 100); // Fetch first 100 for now
+            try {
+                Long cid = Long.parseLong(cidStr);
+                currentCategory = categoryDAO.findById(cid);
+                String catName = currentCategory != null ? currentCategory.getName() : "";
+                seriesList = seriesDao.findByCategory(cid, catName, 1, 100);
+            } catch (NumberFormatException e) {
+                seriesList = seriesDao.findAllActive();
+            }
         } else {
             seriesList = seriesDao.findAllActive();
         }

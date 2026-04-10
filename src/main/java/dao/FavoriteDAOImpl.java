@@ -47,4 +47,16 @@ public class FavoriteDAOImpl implements FavoriteDAO {
 			em.close();
 		}
 	}
+
+	@Override
+	public boolean isFavorite(String userId, Long seriesId) {
+		EntityManager em = XJPA.getEntityManager();
+		try {
+			Long count = em.createQuery("SELECT COUNT(f) FROM Favorite f WHERE f.user.id = :uid AND f.series.id = :sid", Long.class)
+					.setParameter("uid", userId).setParameter("sid", seriesId).getSingleResult();
+			return count != null && count > 0;
+		} finally {
+			em.close();
+		}
+	}
 }

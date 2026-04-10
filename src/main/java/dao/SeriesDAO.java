@@ -37,4 +37,8 @@ public interface SeriesDAO {
      * Trả về List các Object[]: [Thể loại (String), Tổng lượt xem (Long)]
      */
     List<Object[]> getViewsByGenre();
+
+    long countActive();
+
+    long getTotalViews();
 }

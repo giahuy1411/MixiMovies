@@ -11,4 +11,6 @@ public interface FavoriteDAO {
 	List<Series> findSeriesByUser(String userId);
 
 	void deleteByUserAndSeries(String userId, Long seriesId);
+
+	boolean isFavorite(String userId, Long seriesId);
 }

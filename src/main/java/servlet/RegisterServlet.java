@@ -83,15 +83,15 @@ public class RegisterServlet extends HttpServlet {
 
             // Gửi mail (sau khi commit thành công)
             try {
-                String subject = "🎉 Chào mừng bạn đến với OE Entertainment";
+                String subject = "🎉 Chào mừng bạn đến với MixiMovies";
                 String body = "Xin chào " + fullname + ",\n\n"
-                        + "Cảm ơn bạn đã đăng ký tài khoản tại OE Entertainment.\n"
+                        + "Cảm ơn bạn đã đăng ký tài khoản tại MixiMovies.\n"
                         + "Tên đăng nhập của bạn: " + id + "\n\n"
-                        + "Chúc bạn xem video vui vẻ!\n\n"
-                        + "— OE Entertainment Team";
+                        + "Chúc bạn xem phim vui vẻ!\n\n"
+                        + "— MixiMovies Team";
 
                 Mailer.send(
-                        "oe.entertainment@gmail.com",
+                        "miximovies.contact@gmail.com",
                         email,
                         subject,
                         body

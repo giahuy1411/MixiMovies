@@ -29,16 +29,18 @@ public class Utf8Filter implements Filter {
         
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
-        response.setContentType("text/html; charset=UTF-8");
         
-        // Provide global category list for navbar (only for page requests, not static assets)
-        String uri = ((javax.servlet.http.HttpServletRequest) request).getRequestURI();
-        if (!uri.contains(".") || uri.endsWith(".jsp")) {
+        // Provide global category list for navbar (Page requests)
+        String uri = ((javax.servlet.http.HttpServletRequest) request).getRequestURI().toLowerCase();
+        boolean isPage = !uri.contains(".") || uri.endsWith(".jsp") || uri.contains("/forgot-password") || uri.contains("/verify-otp") || uri.contains("/reset-password");
+        
+        if (isPage) {
+            response.setContentType("text/html; charset=UTF-8");
             try {
                 List<Category> categories = categoryDAO.findAllActive();
                 request.setAttribute("globalCategoryList", categories);
             } catch (Exception e) {
-                // Silently fail - navbar will show empty category list
+                // Silently fail
             }
         }
         

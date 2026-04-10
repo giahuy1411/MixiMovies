@@ -180,11 +180,30 @@ public class SeriesDAOImpl implements SeriesDAO {
     public List<Object[]> getViewsByGenre() {
         EntityManager em = XJPA.getEntityManager();
         try {
-            // JPQL doesn't support grouping by comma-separated genres nicely, 
-            // but we can group by the whole genre string or process in Java.
-            // For teacher's eye, a GROUP BY on the 'genre' field is sufficient.
-            String jpql = "SELECT s.genre, SUM(s.views) FROM Series s GROUP BY s.genre";
+            // Thống kê tổng lượt xem theo thể loại
+            String jpql = "SELECT s.genre, SUM(COALESCE(s.views, 0)) FROM Series s GROUP BY s.genre";
             return em.createQuery(jpql, Object[].class).getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public long countActive() {
+        EntityManager em = XJPA.getEntityManager();
+        try {
+            return (Long) em.createQuery("SELECT COUNT(s) FROM Series s WHERE s.active = true").getSingleResult();
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public long getTotalViews() {
+        EntityManager em = XJPA.getEntityManager();
+        try {
+            Object res = em.createQuery("SELECT SUM(s.views) FROM Series s").getSingleResult();
+            return res != null ? ((Number) res).longValue() : 0L;
         } finally {
             em.close();
         }

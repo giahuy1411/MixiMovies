@@ -71,9 +71,18 @@ public class DetailServlet extends HttpServlet {
         // Load danh sách bình luận
         List<Comment> comments = commentDao.findBySeries(id);
 
+        // Kiểm tra trạng thái yêu thích
+        boolean isFavorite = false;
+        entity.User user = utils.AuthUtil.get(req);
+        if (user != null) {
+            dao.FavoriteDAO favDao = new dao.FavoriteDAOImpl();
+            isFavorite = favDao.isFavorite(user.getId(), id);
+        }
+
         req.setAttribute("series", series);
         req.setAttribute("currentEpisode", currentEpisode); // Dùng cho player
         req.setAttribute("comments", comments);
+        req.setAttribute("isFavorite", isFavorite);
         req.getRequestDispatcher("/views/detail.jsp").forward(req, resp);
     }
 }

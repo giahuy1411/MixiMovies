@@ -6,6 +6,7 @@ dao\FavoriteDAOImpl.class
 servlet\AuthFilter.class
 dao\CategoryDAO.class
 dao\CategoryDAOImpl.class
+servlet\ShareServlet.class
 entity\Favorite.class
 servlet\LoginServlet.class
 entity\Category.class
@@ -13,6 +14,7 @@ servlet\DetailServlet.class
 servlet\Utf8Filter.class
 utils\KKPhimClient.class
 dao\CommentDAOImpl.class
+servlet\ProfileServlet.class
 utils\AuthUtil.class
 servlet\HomeServlet.class
 entity\Comment.class
@@ -25,14 +27,18 @@ dao\UserDAOImpl.class
 utils\ParamUtil.class
 servlet\CommentServlet.class
 entity\Episode.class
+servlet\ResetPasswordServlet.class
 dao\ShareDAO.class
+servlet\VerifyOTPServlet.class
 utils\XJPA.class
 dao\SeriesDAOImpl.class
 dao\CommentDAO.class
 entity\User.class
+servlet\FavoriteToggleServlet.class
 utils\Mailer$1.class
 dao\FavoriteDAO.class
 entity\Series.class
+servlet\ForgotPasswordServlet.class
 servlet\RegisterServlet.class
 dao\EpisodeDAOImpl.class
 dao\SeriesDAO.class

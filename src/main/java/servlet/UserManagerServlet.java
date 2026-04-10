@@ -33,14 +33,14 @@ public class UserManagerServlet extends HttpServlet {
             try {
                 String subject = active ? "🔓 Tài khoản của bạn đã được mở khóa" : "🔒 Tài khoản của bạn đã bị khóa";
                 StringBuilder body = new StringBuilder();
-                body.append("Xin chào ").append(user.getFullname()).append(",\n\n");
+                body.append("Xin chào ").append(utils.ParamUtil.htmlEscape(user.getFullname())).append(",\n\n");
                 
                 if (active) {
                     body.append("Chúng tôi vui lòng thông báo rằng tài khoản của bạn đã được mở khóa. Bây giờ bạn có thể đăng nhập lại vào MixiMovies.\n");
                 } else {
                     body.append("Tài khoản của bạn đã bị tạm khóa bởi Quản trị viên.\n");
                     if (reason != null && !reason.trim().isEmpty()) {
-                        body.append("Lý do: ").append(reason).append("\n");
+                        body.append("Lý do: ").append(utils.ParamUtil.htmlEscape(reason)).append("\n");
                     }
                 }
                 

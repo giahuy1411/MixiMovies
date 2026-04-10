@@ -1,6 +1,9 @@
 package servlet;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -10,78 +13,93 @@ import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import entity.User;
+import utils.AuthUtil;
 
 @WebFilter("/*")
 public class AuthFilter implements Filter {
 
     public static final String SECURITY_URI = "securityUri";
+    
+    // Tập hợp các đuôi file tĩnh để lọc nhanh (O(1))
+    private static final Set<String> STATIC_EXTENSIONS;
+
+    static {
+        Set<String> exts = new HashSet<>();
+        exts.add("css"); exts.add("js"); exts.add("png"); exts.add("jpg");
+        exts.add("jpeg"); exts.add("gif"); exts.add("svg"); exts.add("ico");
+        exts.add("woff"); exts.add("ttf"); exts.add("map");
+        STATIC_EXTENSIONS = Collections.unmodifiableSet(exts);
+    }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response,
-                         FilterChain chain)
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
 
-        String uri = req.getRequestURI();
-
-        // Bỏ qua các file tĩnh (css, js, images, ...) để tăng hiệu suất
-        if (uri.contains(".css") || uri.contains(".js") || uri.contains(".png") || 
-            uri.contains(".jpg") || uri.contains(".jpeg") || uri.contains(".woff") || uri.contains(".ttf")) {
-            chain.doFilter(request, response);
-            return;
+        String path = req.getServletPath().toLowerCase();
+        
+        // 1. Kiểm tra file tĩnh nhanh chóng
+        int lastDot = path.lastIndexOf('.');
+        if (lastDot != -1) {
+            String extension = path.substring(lastDot + 1);
+            if (STATIC_EXTENSIONS.contains(extension)) {
+                chain.doFilter(request, response);
+                return;
+            }
         }
 
-        User user = utils.AuthUtil.get(req);
+        User user = AuthUtil.get(req);
 
-        // Nếu user bị ban (Active = false) nhưng vẫn còn session, huỷ session.
+        // 2. Kiểm tra tính hợp lệ của Session (Trường hợp user bị khóa)
         if (user != null && !Boolean.TRUE.equals(user.getActive())) {
             req.getSession().invalidate();
             user = null;
         }
 
-        // ===== ADMIN =====
-        if (uri.contains("/admin")) {
-            if (!utils.AuthUtil.isLogin(req)) {
-                req.getSession(true).setAttribute(SECURITY_URI, uri);
-                resp.sendRedirect(req.getContextPath() + "/login");
+        // 3. Phân quyền Admin
+        if (path.startsWith("/admin")) {
+            if (!AuthUtil.isLogin(req)) {
+                redirectToLogin(req, resp, path);
                 return;
             }
-
-            if (!utils.AuthUtil.isAdmin(req)) {
-                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập trang quản trị này");
+            if (!AuthUtil.isAdmin(req)) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập vùng quản trị.");
                 return;
             }
         }
 
-        // ===== CẦN LOGIN =====
-        // Thêm các uri cần bắt buộc người dùng đăng nhập tại đây
-        boolean needLogin = uri.contains("/addComment") 
-                         || uri.contains("/favorite")
-                         || uri.contains("/like")
-                         || uri.contains("/share");
-
-        if (needLogin && !utils.AuthUtil.isLogin(req)) {
-            req.getSession(true).setAttribute(SECURITY_URI, uri);
-            resp.sendRedirect(req.getContextPath() + "/login");
-            return;
+        // 4. Các đường dẫn yêu cầu đăng nhập (Whitelist)
+        if (isProtectedPath(path)) {
+            if (!AuthUtil.isLogin(req)) {
+                redirectToLogin(req, resp, path);
+                return;
+            }
         }
-
-        // ===== PUBLIC (Không yêu cầu login) =====
-        // Mọi request còn lại (home, watch, login, register, vv...)
 
         chain.doFilter(request, response);
     }
-    
-    @Override
-	public void init(FilterConfig filterConfig) throws ServletException {
-	}
 
-	@Override
-	public void destroy() {
-	}
+    private boolean isProtectedPath(String path) {
+        return path.startsWith("/profile") || 
+               path.startsWith("/favorite") || 
+               path.startsWith("/addcomment") || 
+               path.startsWith("/share") ||
+               path.startsWith("/like") ||
+               path.startsWith("/reset-password");
+    }
+
+    private void redirectToLogin(HttpServletRequest req, HttpServletResponse resp, String uri) throws IOException {
+        req.getSession(true).setAttribute(SECURITY_URI, uri);
+        resp.sendRedirect(req.getContextPath() + "/login");
+    }
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {}
+
+    @Override
+    public void destroy() {}
 }

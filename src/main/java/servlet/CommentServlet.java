@@ -46,21 +46,27 @@ public class CommentServlet extends HttpServlet {
             return;
         }
 
-        Long  seriesId = Long.parseLong(seriesIdParam);
-        Series series   = seriesDao.findById(seriesId);
-        if (series == null) {
-            resp.sendError(404);
-            return;
+        try {
+            Long seriesId = Long.parseLong(seriesIdParam);
+            Series series = seriesDao.findById(seriesId);
+            if (series == null) {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Không tìm thấy phim.");
+                return;
+            }
+
+            Comment comment = new Comment();
+            comment.setUser(user);
+            comment.setSeries(series);
+            comment.setContent(content.trim());
+            comment.setCreatedAt(new Date());
+            commentDao.create(comment);
+
+            // Redirect lại trang xem phim
+            resp.sendRedirect(req.getContextPath() + "/watch?id=" + seriesId);
+        } catch (NumberFormatException e) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "ID phim không hợp lệ.");
+        } catch (Exception e) {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Đã xảy ra lỗi khi lưu bình luận.");
         }
-
-        Comment comment = new Comment();
-        comment.setUser(user);
-        comment.setSeries(series);
-        comment.setContent(content.trim());
-        comment.setCreatedAt(new Date());
-        commentDao.create(comment);
-
-        // Redirect lại trang xem phim
-        resp.sendRedirect(req.getContextPath() + "/watch?id=" + seriesId);
     }
 }
