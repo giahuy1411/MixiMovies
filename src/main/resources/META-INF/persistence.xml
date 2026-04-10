@@ -6,9 +6,10 @@
     <persistence-unit name="MovieDB">
         <properties>
             <property name="javax.persistence.jdbc.driver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
+            <!-- Credentials được ghi đè tại runtime bởi XJPA.java từ env.properties -->
             <property name="javax.persistence.jdbc.url" value="jdbc:sqlserver://localhost:1433;databaseName=MovieDB;encrypt=true;trustServerCertificate=true"/>
-            <property name="javax.persistence.jdbc.user" value="huy"/>
-            <property name="javax.persistence.jdbc.password" value="141108"/>
+            <property name="javax.persistence.jdbc.user" value=""/>
+            <property name="javax.persistence.jdbc.password" value=""/>
 
             <property name="hibernate.dialect" value="org.hibernate.dialect.SQLServerDialect"/>
             <property name="hibernate.show_sql" value="true"/>

@@ -32,37 +32,106 @@ MixiMovies là một ứng dụng web xem phim hiện đại được xây dựn
 
 ## 🚀 Hướng dẫn triển khai
 
-### 1. Chuẩn bị cơ sở dữ liệu
-- Tạo database mới có tên là `MovieDB` trong SQL Server.
-- Cấu hình tài khoản truy cập trong file `src/main/resources/META-INF/persistence.xml`:
-  ```xml
-  <property name="javax.persistence.jdbc.user" value="huy"/>
-  <property name="javax.persistence.jdbc.password" value="141108"/>
-  ```
-- Hệ thống sẽ tự động tạo bảng (table) thông qua cấu hình `hibernate.hbm2ddl.auto = update`.
+### Yêu cầu hệ thống
+- **JDK**: 17+
+- **Apache Tomcat**: 8.5 hoặc 9.x
+- **SQL Server**: 2019+
+- **Maven**: 3.8+
 
-### 2. Cấu hình Email (SMTP)
-- Để sử dụng tính năng gửi OTP và chia sẻ phim, bạn cần cấu hình tài khoản Gmail trong class `utils.Mailer`.
-- Sử dụng "Mật khẩu ứng dụng" (App Password) của Google để đảm bảo tính bảo mật.
+### Bước 1: Clone dự án
+```bash
+git clone https://github.com/giahuy1411/MixiMovies.git
+cd MixiMovies
+```
 
-### 3. Build và Chạy ứng dụng
-- Sử dụng lệnh Maven để đóng gói:
-  ```bash
-  mvn clean package
-  ```
-- Copy file `target/miximovies.war` vào thư mục `webapps` của Apache Tomcat.
-- Truy cập địa chỉ: `http://localhost:8080/miximovies/home`
+### Bước 2: Cấu hình thông tin nhạy cảm
+> ⚠️ **Quan trọng**: Dự án sử dụng file `env.properties` để bảo vệ thông tin nhạy cảm. File này **không được push lên Git**.
+
+```bash
+# Copy file mẫu thành file cấu hình thật
+cp src/main/resources/env.example.properties src/main/resources/env.properties
+```
+
+Mở file `src/main/resources/env.properties` và điền thông tin thật của bạn:
+```properties
+# Database (SQL Server)
+DB_URL=jdbc:sqlserver://localhost:1433;databaseName=MovieDB;encrypt=true;trustServerCertificate=true
+DB_USER=sa
+DB_PASSWORD=your_password_here
+
+# Email (Gmail SMTP - dùng App Password)
+MAIL_USERNAME=your_email@gmail.com
+MAIL_PASSWORD=xxxx xxxx xxxx xxxx
+```
+
+### Bước 3: Tạo Database
+- Mở SQL Server Management Studio (SSMS).
+- Tạo database mới có tên: `MovieDB`.
+- **Không cần tạo bảng** — Hibernate sẽ tự động tạo bảng khi chạy lần đầu (`hbm2ddl.auto = update`).
+
+### Bước 4: Build và Deploy
+```bash
+mvn clean package
+```
+Copy file `target/miximovies.war` vào thư mục `webapps` của Apache Tomcat, sau đó khởi động Tomcat.
+
+### Bước 5: Truy cập
+```
+http://localhost:8080/miximovies/home
+```
 
 ---
 
-## 📖 Hướng dẫn sử dụng Admin
+## 📖 Hướng dẫn sử dụng
 
-1.  **Đăng nhập Admin**: Tài khoản cần có trường `admin = true` trong cơ sở dữ liệu.
-2.  **Thêm phim mới**:
-    - Truy cập **Dashboard** -> **Quản lý Video**.
-    - Nhấn **Thêm phim qua Slug**.
-    - Lấy Slug từ trang KKPhim (ví dụ: `ngoi-truong-xac-song`) và dán vào. Hệ thống sẽ tự lấy toàn bộ dữ liệu.
-3.  **Thống kê**: Kiểm tra biểu đồ phân tích lượt xem theo thể loại để biết xu hướng người dùng.
+### Người dùng
+1. **Đăng ký** tài khoản mới tại trang Đăng ký.
+2. **Đăng nhập** và khám phá kho phim.
+3. **Xem phim**, bình luận và thêm phim vào danh sách yêu thích.
+4. **Chia sẻ** phim hay qua Email cho bạn bè.
+5. **Quên mật khẩu?** Hệ thống sẽ gửi mã OTP qua Email để đặt lại mật khẩu.
+
+### Quản trị viên (Admin)
+1. **Đăng nhập** bằng tài khoản có quyền Admin (`admin = true` trong DB).
+2. **Thêm phim mới**: Vào Dashboard → Quản lý Video → Nhấn "Thêm phim qua Slug" → Nhập slug từ KKPhim (ví dụ: `ngoi-truong-xac-song`). Hệ thống sẽ tự lấy toàn bộ dữ liệu.
+3. **Quản lý thể loại**: Thêm, sửa, xóa danh mục phim.
+4. **Quản lý người dùng**: Khóa/mở khóa tài khoản, thay đổi quyền Admin.
+5. **Thống kê**: Xem biểu đồ phân tích lượt xem theo thể loại.
 
 ---
+
+## 📁 Cấu trúc thư mục chính
+
+```
+MixiMovies/
+├── src/main/java/
+│   ├── dao/          # Data Access Objects (CRUD)
+│   ├── entity/       # JPA Entities (User, Series, Comment, ...)
+│   ├── servlet/      # Servlets & Filters
+│   └── utils/        # Tiện ích (XJPA, Mailer, AuthUtil, ParamUtil, ...)
+├── src/main/resources/
+│   ├── META-INF/persistence.xml    # Cấu hình JPA (không chứa credentials)
+│   ├── env.properties              # 🔒 Credentials thật (BỊ GITIGNORE)
+│   └── env.example.properties      # 📋 File mẫu cho người clone
+├── src/main/webapp/
+│   ├── components/navbar.jsp       # Navbar dùng chung
+│   ├── views/                      # Các trang JSP (index, detail, admin, ...)
+│   └── assets/                     # CSS, JS, Images
+├── .gitignore
+├── pom.xml
+└── README.md
+```
+
+---
+
+## 🔒 Bảo mật
+
+- **Mật khẩu**: Mã hóa SHA-256 (không lưu plain text).
+- **XSS**: Sử dụng `<c:out>` trên toàn bộ JSP và `textContent` trong JavaScript.
+- **CSRF**: Các thao tác xóa/sửa sử dụng phương thức POST.
+- **Credentials**: Tách riêng vào `env.properties`, không push lên Git.
+- **Admin Filter**: Bảo vệ các route `/admin/*` chỉ dành cho tài khoản Admin.
+
+---
+
 *© 2025 MixiMovies — Phát triển bởi giahuy1411*

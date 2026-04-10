@@ -1,0 +1,22 @@
+# ═══ Build ═══
+target/
+*.war
+*.class
+
+# ═══ IDE ═══
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# ═══ OS ═══
+.DS_Store
+Thumbs.db
+
+# ═══ Thông tin nhạy cảm ═══
+src/main/resources/env.properties
+
+# ═══ Screenshots (tùy chọn) ═══
+screenshots/
