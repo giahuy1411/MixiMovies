@@ -68,7 +68,7 @@ public class KKPhimClient {
                     episode.setTitle(item.path("name").asText());
                     // Lấy link phát (ưu tiên link_embed)
                     String videoUrl = item.path("link_embed").asText();
-                    if (videoUrl == null || videoUrl.isEmpty()) {
+                    if (videoUrl.isEmpty()) {
                         videoUrl = item.path("link_m3u8").asText();
                     }
                     episode.setVideoUrl(videoUrl);

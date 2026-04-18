@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import entity.User;
 import utils.AuthUtil;
+import utils.CsrfUtil;
 
 @WebFilter("/*")
 public class AuthFilter implements Filter {
@@ -76,6 +77,20 @@ public class AuthFilter implements Filter {
         if (isProtectedPath(path)) {
             if (!AuthUtil.isLogin(req)) {
                 redirectToLogin(req, resp, path);
+                return;
+            }
+        }
+
+        // 5. Generate CSRF token if not exists
+        if (CsrfUtil.getToken(req) == null) {
+            CsrfUtil.setToken(req);
+        }
+
+        // 6. CSRF validation for POST requests
+        if ("POST".equalsIgnoreCase(req.getMethod())) {
+            String token = req.getParameter("csrf_token");
+            if (!CsrfUtil.validateToken(req, token)) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid CSRF token");
                 return;
             }
         }

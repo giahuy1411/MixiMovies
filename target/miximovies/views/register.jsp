@@ -173,6 +173,7 @@
             </c:if>
 
             <form action="${pageContext.request.contextPath}/register" method="post">
+                <input type="hidden" name="csrf_token" value="${sessionScope.csrf_token}">
                 <div class="input-group">
                     <label for="id">Tên đăng nhập</label>
                     <input type="text" name="id" id="id" placeholder="Tên đăng nhập" required>

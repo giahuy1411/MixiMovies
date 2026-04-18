@@ -1,7 +1,7 @@
 package servlet;
 
 import java.io.IOException;
-import java.util.Random;
+import java.security.SecureRandom;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -11,6 +11,7 @@ import dao.UserDAO;
 import dao.UserDAOImpl;
 import entity.User;
 import utils.Mailer;
+import utils.ParamUtil;
 
 @WebServlet("/forgot-password")
 public class ForgotPasswordServlet extends HttpServlet {
@@ -36,25 +37,22 @@ public class ForgotPasswordServlet extends HttpServlet {
 
         User user = userDao.findByIdOrEmail(idOrEmail);
         if (user == null) {
-            req.setAttribute("error", "Không tìm thấy tài khoản với thông tin đã nhập!");
+            req.setAttribute("error", "Nếu tài khoản tồn tại, mã xác thực sẽ được gửi đến email đã đăng ký.");
             req.getRequestDispatcher("/views/forgot-password.jsp").forward(req, resp);
             return;
         }
 
-        // Tạo OTP 6 chữ số
-        String otp = String.format("%06d", new Random().nextInt(1000000));
-        
-        // Lưu thông tin vào Session
+        String otp = String.format("%06d", new SecureRandom().nextInt(1000000));
+
         HttpSession session = req.getSession();
         session.setAttribute("otp", otp);
         session.setAttribute("otp_userid", user.getId());
         session.setAttribute("otp_email", user.getEmail());
-        session.setAttribute("otp_time", System.currentTimeMillis()); // Cho bảo mật timeout (tùy chọn)
+        session.setAttribute("otp_time", System.currentTimeMillis());
 
-        // Gửi email
         String subject = "Mã xác thực khôi phục mật khẩu - MixiMovies";
         String body = "<h3>MixiMovies - Xác thực yêu cầu</h3>"
-                    + "<p>Xin chào <b>" + user.getFullname() + "</b>,</p>"
+                    + "<p>Xin chào <b>" + ParamUtil.htmlEscape(user.getFullname()) + "</b>,</p>"
                     + "<p>Mã OTP để khôi phục mật khẩu của bạn là: <b style='font-size: 1.5rem; color: #e50914;'>" + otp + "</b></p>"
                     + "<p>Vui lòng không cung cấp mã này cho bất kỳ ai. Mã có hiệu lực trong vòng 5 phút.</p>";
 

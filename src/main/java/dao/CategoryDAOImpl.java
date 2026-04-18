@@ -62,6 +62,11 @@ public class CategoryDAOImpl implements CategoryDAO {
             em.getTransaction().begin();
             em.persist(category);
             em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
         } finally {
             em.close();
         }
@@ -74,6 +79,11 @@ public class CategoryDAOImpl implements CategoryDAO {
             em.getTransaction().begin();
             em.merge(category);
             em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
         } finally {
             em.close();
         }
@@ -89,6 +99,11 @@ public class CategoryDAOImpl implements CategoryDAO {
                 em.remove(category);
             }
             em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
         } finally {
             em.close();
         }

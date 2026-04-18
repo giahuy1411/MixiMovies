@@ -81,6 +81,7 @@
             </c:if>
 
             <form action="${pageContext.request.contextPath}/forgot-password" method="post">
+                <input type="hidden" name="csrf_token" value="${sessionScope.csrf_token}">
                 <div class="input-group">
                     <label for="idOrEmail">Tên đăng nhập / Email</label>
                     <input type="text" name="idOrEmail" id="idOrEmail" placeholder="Nhập ID hoặc Email đã đăng ký" required autofocus>

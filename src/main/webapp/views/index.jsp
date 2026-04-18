@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -252,6 +253,40 @@
             color: var(--accent); font-size: 0.82rem; text-decoration: none; font-weight: 600;
         }
         .clear-filter:hover { text-decoration: underline; }
+
+        /* ───── PAGINATION ───── */
+        .pagination {
+            display: flex; justify-content: center; align-items: center;
+            gap: 10px; margin-top: 40px;
+        }
+        .page-link {
+            min-width: 40px; height: 40px; padding: 0 14px;
+            background: var(--bg3); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text2);
+            text-decoration: none; display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; font-weight: 500; transition: all 0.2s;
+        }
+        .page-link:hover:not(.disabled) {
+            background: var(--card-hover); border-color: rgba(255,255,255,0.2); color: #fff;
+            transform: translateY(-2px);
+        }
+        .page-link.active {
+            background: var(--accent); border-color: var(--accent); color: #fff;
+            box-shadow: 0 4px 15px rgba(229,9,20,0.3);
+        }
+        .page-link.disabled {
+            opacity: 0.4; pointer-events: none;
+        }
+        .page-dots { color: var(--text3); }
+
+        /* ───── PREMIUM BADGE ───── */
+        .premium-card-badge {
+            position: absolute; top: 10px; right: 10px;
+            background: linear-gradient(135deg, #f5c518, #ff8c00); color: #000;
+            font-size: 0.65rem; font-weight: 800; padding: 3px 8px;
+            border-radius: 4px; letter-spacing: 0.5px; z-index: 5;
+            display: flex; align-items: center; gap: 3px;
+        }
     </style>
 </head>
 <body>
@@ -304,6 +339,10 @@
                     <img src="${series.poster != 'N/A' && !empty series.poster ? series.poster : 'https://via.placeholder.com/200x300/1a1a24/666?text=No+Poster'}"
                          alt="${series.title}" loading="lazy">
                     <div class="card-badge">${series.type == 'tv' ? 'TV' : 'HD'}</div>
+                    <jsp:useBean id="now" class="java.util.Date" />
+                    <c:if test="${not empty series.createdAt && (now.time - series.createdAt.time) / (1000*60*60*24) < 10}">
+                        <div class="premium-card-badge"><i class="fas fa-crown"></i> PREMIUM</div>
+                    </c:if>
                     <div class="card-overlay">
                         <div class="card-play">
                             <i class="fas fa-play"></i>
@@ -330,6 +369,45 @@
             </div>
         </c:if>
     </div>
+
+    <!-- Pagination -->
+    <c:if test="${totalPages > 1}">
+        <div class="pagination">
+            <%-- Nút Trước --%>
+            <a href="?p=${currentPage - 1}${not empty currentCategory ? '&cid='.concat(currentCategory.id) : ''}" 
+               class="page-link ${currentPage <= 1 ? 'disabled' : ''}">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+
+            <%-- Hiển thị các trang --%>
+            <c:set var="start" value="${currentPage - 2 > 0 ? currentPage - 2 : 1}" />
+            <c:set var="end" value="${start + 4 < totalPages ? start + 4 : totalPages}" />
+            <c:if test="${end - start < 4 && totalPages > 5}">
+                <c:set var="start" value="${end - 4 > 0 ? end - 4 : 1}" />
+            </c:if>
+
+            <c:if test="${start > 1}">
+                <a href="?p=1${not empty currentCategory ? '&cid='.concat(currentCategory.id) : ''}" class="page-link">1</a>
+                <c:if test="${start > 2}"><span class="page-dots">...</span></c:if>
+            </c:if>
+
+            <c:forEach begin="${start}" end="${end}" var="i">
+                <a href="?p=${i}${not empty currentCategory ? '&cid='.concat(currentCategory.id) : ''}" 
+                   class="page-link ${i == currentPage ? 'active' : ''}">${i}</a>
+            </c:forEach>
+
+            <c:if test="${end < totalPages}">
+                <c:if test="${end < totalPages - 1}"><span class="page-dots">...</span></c:if>
+                <a href="?p=${totalPages}${not empty currentCategory ? '&cid='.concat(currentCategory.id) : ''}" class="page-link">${totalPages}</a>
+            </c:if>
+
+            <%-- Nút Sau --%>
+            <a href="?p=${currentPage + 1}${not empty currentCategory ? '&cid='.concat(currentCategory.id) : ''}" 
+               class="page-link ${currentPage >= totalPages ? 'disabled' : ''}">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+    </c:if>
 </main>
 
 <footer>

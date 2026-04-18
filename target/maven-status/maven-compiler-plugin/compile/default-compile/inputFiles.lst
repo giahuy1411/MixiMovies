@@ -5,9 +5,12 @@ C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\utils\Mailer.
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\dao\UserDAO.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\dao\FavoriteDAO.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\servlet\FavoriteToggleServlet.java
+C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\utils\AppConfigListener.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\dao\CommentDAOImpl.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\dao\CategoryDAO.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\entity\Share.java
+C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\utils\SePayUtil.java
+C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\filter\UTF8Filter.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\servlet\LogoutServlet.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\dao\CommentDAO.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\utils\AuthUtil.java
@@ -21,6 +24,7 @@ C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\servlet\Share
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\entity\Category.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\servlet\CommentServlet.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\servlet\ResetPasswordServlet.java
+C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\utils\CsrfUtil.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\dao\FavoriteDAOImpl.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\servlet\ProfileServlet.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\servlet\RegisterServlet.java
@@ -32,6 +36,7 @@ C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\servlet\UserM
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\utils\PasswordUtil.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\utils\XJPA.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\entity\User.java
+C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\servlet\PremiumServlet.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\servlet\AdminServlet.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\servlet\ForgotPasswordServlet.java
 C:\Users\ASUS\Documents\LAPTRINH\JAVAWEB2\MixiMovies\src\main\java\servlet\LoginServlet.java

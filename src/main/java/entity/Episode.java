@@ -1,7 +1,6 @@
 package entity;
 
 import javax.persistence.*;
-
 @Entity
 @Table(name = "Episodes")
 public class Episode {

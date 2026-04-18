@@ -138,6 +138,9 @@
         </a>
         <ul class="nav-links">
             <li><a href="${pageContext.request.contextPath}/home" class="nav-link-item">Trang chủ</a></li>
+            <c:if test="${empty sessionScope.user || !sessionScope.user.premium}">
+                <li><a href="${pageContext.request.contextPath}/premium" class="nav-link-item" style="color:var(--gold); font-weight:800;"><i class="fas fa-crown"></i> Gói Premium</a></li>
+            </c:if>
             
             <li class="nav-dropdown">
                 <a class="nav-link-item nav-dropdown-trigger">
@@ -146,7 +149,7 @@
                 <div class="dropdown-content">
                     <c:forEach var="cat" items="${globalCategoryList}">
                         <a href="${pageContext.request.contextPath}/home?cid=${cat.id}" class="dropdown-item">
-                            ${cat.name}
+                            <c:out value="${cat.name}"/>
                         </a>
                     </c:forEach>
                     <c:if test="${empty globalCategoryList}">
@@ -156,19 +159,22 @@
                     </c:if>
                 </div>
             </li>
-    <c:if test="${not empty sessionScope.user}">
-        <li class="nav-user">
-            <a href="${pageContext.request.contextPath}/profile" class="nav-link-item" style="color:#fff; font-weight:700;">
-                <i class="fas fa-user-circle"></i> ${sessionScope.user.fullname}
-            </a>
-        </li>   
-        <c:if test="${sessionScope.user.admin}">
-			<li><a href="${pageContext.request.contextPath}/admin/video" class="nav-link-item">⚙ Quản trị</a></li>
-		</c:if>
-        <li>
-            <a href="${pageContext.request.contextPath}/logout" class="nav-btn-logout">Đăng xuất</a>
-        </li>
-    </c:if>
+            <c:if test="${not empty sessionScope.user}">
+                <li class="nav-user">
+                    <a href="${pageContext.request.contextPath}/profile" class="nav-link-item" style="color:#fff; font-weight:700;">
+                        <i class="fas fa-user-circle"></i> <c:out value="${sessionScope.user.fullname}"/>
+                        <c:if test="${sessionScope.user.premium}">
+                            <span style="color:#f5c518; margin-left:4px;" title="Premium"><i class="fas fa-crown"></i></span>
+                        </c:if>
+                    </a>
+                </li>
+                <c:if test="${sessionScope.user.admin}">
+                    <li><a href="${pageContext.request.contextPath}/admin/video" class="nav-link-item">⚙ Quản trị</a></li>
+                </c:if>
+                <li>
+                    <a href="${pageContext.request.contextPath}/logout" class="nav-btn-logout">Đăng xuất</a>
+                </li>
+            </c:if>
             <c:if test="${empty sessionScope.user}">
                 <li>
                     <a href="${pageContext.request.contextPath}/login" class="nav-btn-login">Đăng nhập</a>

@@ -58,6 +58,7 @@
             </c:if>
 
             <form action="${pageContext.request.contextPath}/verify-otp" method="post">
+                <input type="hidden" name="csrf_token" value="${sessionScope.csrf_token}">
                 <div class="input-group">
                     <input type="text" name="otp" class="otp-input" maxlength="6" placeholder="000000" pattern="\d{6}" required autofocus>
                 </div>

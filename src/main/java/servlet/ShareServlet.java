@@ -38,7 +38,27 @@ public class ShareServlet extends HttpServlet {
             return;
         }
 
-        Long seriesId = Long.parseLong(seriesIdParam);
+        // Validate email format
+        if (!emailTo.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            req.setAttribute("error", "Email không hợp lệ");
+            resp.sendRedirect(req.getContextPath() + "/watch?id=" + seriesIdParam);
+            return;
+        }
+
+        // Validate message length
+        if (customMessage != null && customMessage.length() > 500) {
+            req.setAttribute("error", "Lời nhắn quá dài (tối đa 500 ký tự)");
+            resp.sendRedirect(req.getContextPath() + "/watch?id=" + seriesIdParam);
+            return;
+        }
+
+        Long seriesId;
+        try {
+            seriesId = Long.parseLong(seriesIdParam);
+        } catch (NumberFormatException e) {
+            resp.sendRedirect(req.getContextPath() + "/home");
+            return;
+        }
         Series series = seriesDao.findById(seriesId);
 
         if (series != null) {

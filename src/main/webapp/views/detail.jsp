@@ -6,8 +6,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${series.title} (${series.year}) — MixiMovies</title>
-    <meta name="description" content="${series.description}">
+    <title><c:out value="${series.title}"/> (${series.year}) — MixiMovies</title>
+    <meta name="description" content="<c:out value="${series.description}"/>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -326,6 +326,41 @@
 
         /* ─── BOTTOM SPACER ─── */
         .spacer { height: 60px; }
+
+        /* ─── PREMIUM LOCK ─── */
+        .premium-lock-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(10,10,15,0.95) 0%, rgba(20,10,30,0.98) 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 10; text-align: center; padding: 40px;
+        }
+        .premium-lock-icon {
+            font-size: 3.5rem; color: var(--gold); margin-bottom: 16px;
+            animation: pulse-gold 2s ease-in-out infinite;
+        }
+        @keyframes pulse-gold {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(245,197,24,0.3)); }
+            50% { transform: scale(1.1); filter: drop-shadow(0 0 20px rgba(245,197,24,0.6)); }
+        }
+        .premium-lock-title {
+            font-size: 1.4rem; font-weight: 800; color: #fff; margin-bottom: 8px;
+        }
+        .premium-lock-desc {
+            color: var(--text2); font-size: 0.9rem; max-width: 380px; line-height: 1.6; margin-bottom: 24px;
+        }
+        .premium-badge-tag {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: linear-gradient(135deg, #f5c518, #ff8c00); color: #000;
+            padding: 10px 24px; border-radius: 30px; font-weight: 700; font-size: 0.9rem;
+            box-shadow: 0 4px 20px rgba(245,197,24,0.3);
+        }
+        .premium-card-badge {
+            position: absolute; top: 10px; right: 10px;
+            background: linear-gradient(135deg, #f5c518, #ff8c00); color: #000;
+            font-size: 0.65rem; font-weight: 800; padding: 3px 8px;
+            border-radius: 4px; letter-spacing: 0.5px; z-index: 5;
+            display: flex; align-items: center; gap: 3px;
+        }
     </style>
 </head>
 <body>
@@ -337,7 +372,7 @@
     <nav class="breadcrumb">
         <a href="${pageContext.request.contextPath}/home"><i class="fas fa-home"></i> Trang chủ</a>
         <span class="sep">/</span>
-        <span class="current">${series.title}</span>
+        <span class="current"><c:out value="${series.title}"/></span>
     </nav>
 
     <div class="watch-grid">
@@ -347,11 +382,30 @@
             <div class="player-wrapper">
                 <div class="player-aspect">
                     <c:choose>
+                        <c:when test="${premiumLocked}">
+                            <!-- Premium Lock Overlay -->
+                            <div class="premium-lock-overlay">
+                                <div class="premium-lock-icon"><i class="fas fa-crown"></i></div>
+                                <div class="premium-lock-title">Nội dung Premium</div>
+                                <div class="premium-lock-desc">
+                                    Phim này vừa ra mắt và chỉ dành cho thành viên Premium.
+                                    Vui lòng nâng cấp tài khoản hoặc quay lại sau 10 ngày để xem miễn phí.
+                                </div>
+                                <a href="${pageContext.request.contextPath}/premium" style="text-decoration: none;">
+                                    <div class="premium-badge-tag">
+                                        <i class="fas fa-crown"></i> Nâng cấp Premium
+                                    </div>
+                                </a>
+                            </div>
+                        </c:when>
                         <c:when test="${not empty currentEpisode}">
-                            <iframe src="${currentEpisode.videoUrl}"
-                                    allowfullscreen
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
-                            </iframe>
+                            <c:if test="${fn:startsWith(currentEpisode.videoUrl, 'http') and not fn:contains(currentEpisode.videoUrl, 'javascript:')}">
+                                <iframe src="<c:out value="${currentEpisode.videoUrl}"/>"
+                                        allowfullscreen
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        sandbox="allow-scripts allow-same-origin allow-forms">
+                                </iframe>
+                            </c:if>
                         </c:when>
                         <c:otherwise>
                             <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#666;">
@@ -370,7 +424,7 @@
                         <c:forEach var="ep" items="${series.episodes}">
                             <a href="${pageContext.request.contextPath}/watch?id=${series.id}&ep=${ep.id}"
                                class="ep-btn ${currentEpisode.id == ep.id ? 'active' : ''}">
-                                ${ep.title}
+                                <c:out value="${ep.title}"/>
                             </a>
                         </c:forEach>
                     </div>
@@ -380,7 +434,7 @@
             <!-- Movie Header -->
             <div class="movie-header">
                 <div class="movie-title-row">
-                    <h1 class="movie-title">${series.title} <c:if test="${not empty currentEpisode}">- ${currentEpisode.title}</c:if></h1>
+                    <h1 class="movie-title"><c:out value="${series.title}"/> <c:if test="${not empty currentEpisode}">- <c:out value="${currentEpisode.title}"/></c:if></h1>
                     <span class="movie-year-tag">${series.year}</span>
                 </div>
 
@@ -389,7 +443,7 @@
                         <i class="fas fa-film"></i> ${series.type == 'tv' ? 'TV Series' : 'HD'}
                     </span>
                     <c:forTokens items="${series.genre}" delims="," var="g">
-                        <span class="badge badge-genre">${g}</span>
+                        <span class="badge badge-genre"><c:out value="${g}"/></span>
                     </c:forTokens>
                     <span class="badge badge-views">
                         <i class="fas fa-eye"></i> ${series.views != null ? series.views : 0} lượt xem
@@ -403,6 +457,7 @@
                             <div class="action-btn btn-favorite ${isFavorite ? 'active-favorite' : ''}">
                                 <form action="${pageContext.request.contextPath}/favorite/toggle" method="POST">
                                     <input type="hidden" name="seriesId" value="${series.id}">
+                                    <input type="hidden" name="csrf_token" value="${sessionScope.csrf_token}">
                                     <button type="submit">
                                         <i class="fa-${isFavorite ? 'solid' : 'regular'} fa-heart"></i>
                                         ${isFavorite ? 'Đã Yêu thích' : 'Yêu thích'}
@@ -453,10 +508,11 @@
                     <div style="background:var(--card); width:100%; max-width:450px; border-radius:12px; padding:25px; border:1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.8); position:relative;">
                         <button onclick="closeShareModal()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:var(--text3); font-size:1.2rem; cursor:pointer;"><i class="fas fa-times"></i></button>
                         <h3 style="font-size:1.2rem; font-weight:700; margin-bottom:15px; display:flex; align-items:center; gap:8px;"><i class="fas fa-share-alt" style="color:var(--accent);"></i> Chia sẻ phim này</h3>
-                        <p style="color:var(--text2); font-size:0.9rem; margin-bottom:20px;">Gửi thông tin bộ phim <b>${series.title}</b> tới bạn bè.</p>
-                        
+                        <p style="color:var(--text2); font-size:0.9rem; margin-bottom:20px;">Gửi thông tin bộ phim <b><c:out value="${series.title}"/></b> tới bạn bè.</p>
+
                         <form action="${pageContext.request.contextPath}/share" method="POST">
                             <input type="hidden" name="seriesId" value="${series.id}">
+                            <input type="hidden" name="csrf_token" value="${sessionScope.csrf_token}">
                             <div style="margin-bottom:16px;">
                                 <label style="display:block; font-size:0.85rem; color:var(--text3); margin-bottom:8px; font-weight:600;">Email người nhận *</label>
                                 <input type="email" name="email" required placeholder="nhapemail@gmail.com" style="width:100%; padding:12px 14px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; color:var(--text); outline:none;">
@@ -499,6 +555,7 @@
                     <c:when test="${not empty sessionScope.user}">
                         <form class="comment-form" action="${pageContext.request.contextPath}/addComment" method="post">
                             <input type="hidden" name="seriesId" value="${series.id}">
+                            <input type="hidden" name="csrf_token" value="${sessionScope.csrf_token}">
                             <textarea name="content" placeholder="Chia sẻ cảm nhận của bạn về phim..." required></textarea>
                             <button type="submit">
                                 <i class="fas fa-paper-plane"></i> Gửi bình luận

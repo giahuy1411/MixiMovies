@@ -20,10 +20,13 @@ public class User {
     private String fullname;
 
     @Column(name = "Admin")
-    private Boolean admin;
+    private Boolean admin = false;
 
     @Column(name = "Active")
     private Boolean active = true;
+
+    @Column(name = "Premium")
+    private Boolean premium = false;
 
     public String getId() {
         return id;
@@ -71,5 +74,13 @@ public class User {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    public Boolean getPremium() {
+        return premium;
+    }
+
+    public void setPremium(Boolean premium) {
+        this.premium = premium;
     }
 }

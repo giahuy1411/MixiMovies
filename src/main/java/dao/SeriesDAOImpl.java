@@ -5,6 +5,7 @@ import utils.XJPA;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
@@ -95,6 +96,20 @@ public class SeriesDAOImpl implements SeriesDAO {
     }
 
     @Override
+    public List<Series> findAllActive(int page, int size) {
+        EntityManager em = XJPA.getEntityManager();
+        try {
+            String jpql = "SELECT DISTINCT s FROM Series s LEFT JOIN FETCH s.episodes LEFT JOIN FETCH s.category WHERE s.active = true ORDER BY s.createdAt DESC";
+            TypedQuery<Series> query = em.createQuery(jpql, Series.class);
+            query.setFirstResult((page - 1) * size);
+            query.setMaxResults(size);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
     public Series findById(Long id) {
         EntityManager em = XJPA.getEntityManager();
         try {
@@ -102,7 +117,7 @@ public class SeriesDAOImpl implements SeriesDAO {
             return em.createQuery(jpql, Series.class)
                     .setParameter("id", id)
                     .getSingleResult();
-        } catch (NoResultException e) {
+        } catch (NoResultException | NonUniqueResultException e) {
             return null;
         } finally {
             em.close();
@@ -117,7 +132,7 @@ public class SeriesDAOImpl implements SeriesDAO {
             TypedQuery<Series> query = em.createQuery(jpql, Series.class);
             query.setParameter("slug", slug);
             return query.getSingleResult();
-        } catch (NoResultException e) {
+        } catch (NoResultException | NonUniqueResultException e) {
             return null;
         } finally {
             em.close();
@@ -131,6 +146,11 @@ public class SeriesDAOImpl implements SeriesDAO {
             em.getTransaction().begin();
             em.persist(series);
             em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
         } finally {
             em.close();
         }
@@ -143,6 +163,11 @@ public class SeriesDAOImpl implements SeriesDAO {
             em.getTransaction().begin();
             em.merge(series);
             em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
         } finally {
             em.close();
         }
@@ -156,6 +181,11 @@ public class SeriesDAOImpl implements SeriesDAO {
             Series series = em.find(Series.class, id);
             if (series != null) em.remove(series);
             em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
         } finally {
             em.close();
         }
@@ -170,7 +200,9 @@ public class SeriesDAOImpl implements SeriesDAO {
                     .setParameter("id", id).executeUpdate();
             em.getTransaction().commit();
         } catch (Exception e) {
-            em.getTransaction().rollback();
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
         } finally {
             em.close();
         }

@@ -24,7 +24,7 @@ public class FavoriteToggleServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        
+
         User user = AuthUtil.get(req);
         if (user == null) {
             resp.sendRedirect(req.getContextPath() + "/login");
@@ -37,22 +37,30 @@ public class FavoriteToggleServlet extends HttpServlet {
             return;
         }
 
-        Long seriesId = Long.parseLong(seriesIdParam);
-        Series series = seriesDao.findById(seriesId);
-
-        if (series != null) {
-            boolean isFav = favoriteDao.isFavorite(user.getId(), seriesId);
-            if (isFav) {
-                favoriteDao.deleteByUserAndSeries(user.getId(), seriesId);
-            } else {
-                Favorite fav = new Favorite();
-                fav.setUser(user);
-                fav.setSeries(series);
-                favoriteDao.create(fav);
-            }
+        Long seriesId;
+        try {
+            seriesId = Long.parseLong(seriesIdParam);
+        } catch (NumberFormatException e) {
+            resp.sendRedirect(req.getContextPath() + "/home");
+            return;
         }
 
-        // Redirect back to the watch page
+        Series series = seriesDao.findById(seriesId);
+        if (series == null) {
+            resp.sendRedirect(req.getContextPath() + "/home");
+            return;
+        }
+
+        boolean isFav = favoriteDao.isFavorite(user.getId(), seriesId);
+        if (isFav) {
+            favoriteDao.deleteByUserAndSeries(user.getId(), seriesId);
+        } else {
+            Favorite fav = new Favorite();
+            fav.setUser(user);
+            fav.setSeries(series);
+            favoriteDao.create(fav);
+        }
+
         resp.sendRedirect(req.getContextPath() + "/watch?id=" + seriesId);
     }
 }

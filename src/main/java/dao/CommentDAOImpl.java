@@ -29,6 +29,11 @@ public class CommentDAOImpl implements CommentDAO {
             em.getTransaction().begin();
             em.persist(comment);
             em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
         } finally {
             em.close();
         }
@@ -43,6 +48,11 @@ public class CommentDAOImpl implements CommentDAO {
             if (comment != null)
                 em.remove(comment);
             em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
         } finally {
             em.close();
         }

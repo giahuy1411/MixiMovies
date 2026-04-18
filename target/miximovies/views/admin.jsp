@@ -591,6 +591,7 @@
 
                 <!-- Hidden form for toggling user status -->
                 <form id="userToggleForm" action="${pageContext.request.contextPath}/admin/users/toggle" method="post" style="display:none;">
+                    <input type="hidden" name="csrf_token" value="${sessionScope.csrf_token}">
                     <input type="hidden" name="id" id="toggleUserId">
                     <input type="hidden" name="action" id="toggleUserAction">
                     <input type="hidden" name="reason" id="toggleUserReason">
@@ -789,6 +790,7 @@
             <button class="modal-close" onclick="closeModal('createModal')"><i class="fas fa-times"></i></button>
         </div>
         <form action="${pageContext.request.contextPath}/admin/video/create" method="post">
+            <input type="hidden" name="csrf_token" value="${sessionScope.csrf_token}">
             <div class="form-group">
                 <label>Slug (tên miền phụ KKPhim)</label>
                 <input name="slug" placeholder="Ví dụ: venom-keo-cuoi-cung" required>
@@ -810,6 +812,7 @@
             <button class="modal-close" onclick="closeModal('editModal')"><i class="fas fa-times"></i></button>
         </div>
         <form action="${pageContext.request.contextPath}/admin/video/update" method="post">
+            <input type="hidden" name="csrf_token" value="${sessionScope.csrf_token}">
             <input type="hidden" name="id" id="editId">
             <div class="form-row">
                 <div class="form-group">
@@ -872,6 +875,7 @@
             <button class="modal-close" onclick="closeModal('editCategoryModal')"><i class="fas fa-times"></i></button>
         </div>
         <form action="${pageContext.request.contextPath}/admin/categories/update" method="post">
+            <input type="hidden" name="csrf_token" value="${sessionScope.csrf_token}">
             <input type="hidden" name="id" id="editCatId">
             <div class="form-group">
                 <label>Tên thể loại</label>
@@ -909,6 +913,7 @@
             <button class="modal-close" onclick="closeModal('addCategoryModal')"><i class="fas fa-times"></i></button>
         </div>
         <form action="${pageContext.request.contextPath}/admin/categories/create" method="post">
+            <input type="hidden" name="csrf_token" value="${sessionScope.csrf_token}">
             <div class="form-group">
                 <label>Tên thể loại</label>
                 <input name="name" placeholder="Ví dụ: Hành động" required>
@@ -967,11 +972,19 @@
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '${pageContext.request.contextPath}/admin/' + path;
+            
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'id';
             input.value = id;
             form.appendChild(input);
+
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = 'csrf_token';
+            csrfToken.value = '${sessionScope.csrf_token}';
+            form.appendChild(csrfToken);
+
             document.body.appendChild(form);
             form.submit();
         }

@@ -14,6 +14,7 @@ import dao.SeriesDAOImpl;
 import entity.Comment;
 import entity.Series;
 import entity.Episode;
+import utils.ParamUtil;
 
 @WebServlet("/watch")
 public class DetailServlet extends HttpServlet {
@@ -45,10 +46,7 @@ public class DetailServlet extends HttpServlet {
             return;
         }
 
-        // Tăng lượt xem
         seriesDao.increaseView(id);
-        // Lấy lại để views được cập nhật
-        series = seriesDao.findById(id);
 
         // Xử lý chọn tập phim (episode)
         String epParam = req.getParameter("ep");
@@ -62,7 +60,6 @@ public class DetailServlet extends HttpServlet {
                     }
                 }
             }
-            // Mặc định chọn tập 1 nếu không có tham số ep hoặc không tìm thấy
             if (currentEpisode == null) {
                 currentEpisode = series.getEpisodes().get(0);
             }
@@ -79,10 +76,27 @@ public class DetailServlet extends HttpServlet {
             isFavorite = favDao.isFavorite(user.getId(), id);
         }
 
+        // Kiểm tra Premium Lock: Phim < 10 ngày chỉ dành cho Premium
+        boolean premiumLocked = false;
+        boolean isNewMovie = false;
+        if (series.getCreatedAt() != null) {
+            long diffMs = System.currentTimeMillis() - series.getCreatedAt().getTime();
+            long diffDays = diffMs / (1000 * 60 * 60 * 24);
+            isNewMovie = diffDays < 10;
+
+            if (isNewMovie) {
+                boolean isAdmin = user != null && Boolean.TRUE.equals(user.getAdmin());
+                boolean isPremium = user != null && Boolean.TRUE.equals(user.getPremium());
+                premiumLocked = !isAdmin && !isPremium;
+            }
+        }
+
         req.setAttribute("series", series);
-        req.setAttribute("currentEpisode", currentEpisode); // Dùng cho player
+        req.setAttribute("currentEpisode", currentEpisode);
         req.setAttribute("comments", comments);
         req.setAttribute("isFavorite", isFavorite);
+        req.setAttribute("premiumLocked", premiumLocked);
+        req.setAttribute("isNewMovie", isNewMovie);
         req.getRequestDispatcher("/views/detail.jsp").forward(req, resp);
     }
 }

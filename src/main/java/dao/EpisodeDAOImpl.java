@@ -53,6 +53,11 @@ public class EpisodeDAOImpl implements EpisodeDAO {
             em.getTransaction().begin();
             em.persist(episode);
             em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
         } finally {
             em.close();
         }
@@ -65,6 +70,11 @@ public class EpisodeDAOImpl implements EpisodeDAO {
             em.getTransaction().begin();
             em.merge(episode);
             em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
         } finally {
             em.close();
         }
@@ -78,6 +88,11 @@ public class EpisodeDAOImpl implements EpisodeDAO {
             Episode episode = em.find(Episode.class, id);
             if (episode != null) em.remove(episode);
             em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
         } finally {
             em.close();
         }

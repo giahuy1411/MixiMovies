@@ -21,6 +21,10 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        String redirect = req.getParameter("redirect");
+        if (redirect != null && !redirect.isEmpty()) {
+            req.getSession(true).setAttribute("redirectAfterLogin", redirect);
+        }
         req.getRequestDispatcher("/views/login.jsp").forward(req, resp);
     }
 
@@ -49,8 +53,24 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        HttpSession session = req.getSession();
+        HttpSession session = req.getSession(true);
+        req.changeSessionId();
         session.setAttribute(utils.AuthUtil.SESSION_USER_KEY, user);
-        resp.sendRedirect(req.getContextPath() + "/home");
+        
+        String redirectUrl = (String) session.getAttribute("redirectAfterLogin");
+        String securityUri = (String) session.getAttribute("securityUri");
+
+        if (redirectUrl != null) {
+            session.removeAttribute("redirectAfterLogin");
+            resp.sendRedirect(req.getContextPath() + "/" + redirectUrl);
+        } else if (securityUri != null) {
+            session.removeAttribute("securityUri");
+            // securityUri từ filter thường đã có sẵn prefix "/...",
+            // tuy nhiên tuỳ cách redirect ở filter. AuthFilter dùng req.getServletPath(). 
+            // Ta cần prepend context path.
+            resp.sendRedirect(req.getContextPath() + securityUri);
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/home");
+        }
     }
 }

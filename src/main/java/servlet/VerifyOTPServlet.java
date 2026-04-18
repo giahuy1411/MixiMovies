@@ -1,6 +1,7 @@
 package servlet;
 
 import java.io.IOException;
+import java.security.MessageDigest;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -44,12 +45,24 @@ public class VerifyOTPServlet extends HttpServlet {
             return;
         }
 
-        if (sessionOtp.equals(inputOtp)) {
+        if (constantTimeEquals(sessionOtp, inputOtp)) {
             session.setAttribute("otp_verified", true);
             resp.sendRedirect(req.getContextPath() + "/reset-password");
         } else {
             req.setAttribute("error", "Mã xác thực không chính xác!");
             req.getRequestDispatcher("/views/verify-otp.jsp").forward(req, resp);
         }
+    }
+
+    private boolean constantTimeEquals(String a, String b) {
+        if (a == null || b == null) return false;
+        if (a.length() != b.length()) return false;
+        byte[] aBytes = a.getBytes();
+        byte[] bBytes = b.getBytes();
+        int result = 0;
+        for (int i = 0; i < aBytes.length; i++) {
+            result |= aBytes[i] ^ bBytes[i];
+        }
+        return result == 0;
     }
 }

@@ -53,6 +53,7 @@
             </c:if>
 
             <form action="${pageContext.request.contextPath}/reset-password" method="post" id="resetForm">
+                <input type="hidden" name="csrf_token" value="${sessionScope.csrf_token}">
                 <div class="input-group">
                     <label for="newPassword">Mật khẩu mới</label>
                     <input type="password" name="newPassword" id="newPassword" placeholder="••••••••" required autofocus>

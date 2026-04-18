@@ -15,6 +15,8 @@ public interface SeriesDAO {
     long count();
 
     List<Series> findAllActive();
+    
+    List<Series> findAllActive(int page, int size);
 
     List<Series> findByCategory(Long cid, String categoryName, int page, int size);
 

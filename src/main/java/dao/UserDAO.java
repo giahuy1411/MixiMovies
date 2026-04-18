@@ -5,9 +5,15 @@ import java.util.List;
 import entity.User;
 
 public interface UserDAO {
-	
+
 	/** Truy vấn tất cả */
 	List<User> findAll();
+
+	/** Truy vấn tất cả với phân trang */
+	List<User> findAll(int page, int size);
+
+	/** Đếm tổng số user */
+	long count();
 
 	/** Truy vấn theo mã */
 	User findById(String id);

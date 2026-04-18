@@ -15,6 +15,11 @@ public class ShareDAOImpl implements ShareDAO {
             em.getTransaction().begin();
             em.persist(s);
             em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
         } finally {
             em.close();
         }

@@ -35,6 +35,28 @@ public class RegisterServlet extends HttpServlet {
         String email = req.getParameter("email");
         String fullname = req.getParameter("fullname");
 
+        // Validate inputs
+        if (id == null || id.trim().isEmpty() || id.length() < 3 || id.length() > 30) {
+            req.setAttribute("error", "Tên đăng nhập phải từ 3-30 ký tự");
+            req.getRequestDispatcher("/views/register.jsp").forward(req, resp);
+            return;
+        }
+        if (password == null || password.length() < 6) {
+            req.setAttribute("error", "Mật khẩu phải có ít nhất 6 ký tự");
+            req.getRequestDispatcher("/views/register.jsp").forward(req, resp);
+            return;
+        }
+        if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            req.setAttribute("error", "Email không hợp lệ");
+            req.getRequestDispatcher("/views/register.jsp").forward(req, resp);
+            return;
+        }
+        if (fullname == null || fullname.trim().isEmpty() || fullname.length() > 255) {
+            req.setAttribute("error", "Họ tên không hợp lệ");
+            req.getRequestDispatcher("/views/register.jsp").forward(req, resp);
+            return;
+        }
+
         EntityManager em = XJPA.getEntityManager();
 
         try {

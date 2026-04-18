@@ -19,6 +19,7 @@ import entity.Series;
 import entity.User;
 import entity.Category;
 import utils.KKPhimClient;
+import utils.ParamUtil;
 
 @WebServlet({
     "/admin/video",
@@ -27,6 +28,7 @@ import utils.KKPhimClient;
     "/admin/video/delete",
     "/admin/users",
     "/admin/users/role",
+    "/admin/users/premium",
     "/admin/categories",
     "/admin/categories/create",
     "/admin/categories/update",
@@ -62,11 +64,20 @@ public class AdminServlet extends HttpServlet {
         if (sortDir == null) sortDir = "desc";
 
         List<Series> seriesList = seriesDao.findAll(page, PAGE_SIZE, sortBy, sortDir);
-        List<User> userList = userDAO.findAll();
+
+        String userPageStr = req.getParameter("userPage");
+        int userPage = 1;
+        try {
+            userPage = Integer.parseInt(userPageStr);
+        } catch (Exception e) {
+            userPage = 1;
+        }
+        List<User> userList = userDAO.findAll(userPage, PAGE_SIZE);
+        long totalUsers = userDAO.count();
+
         List<Category> categoryList = categoryDAO.findAll();
-        
+
         long totalVideos = seriesDao.count();
-        long totalUsers = userList.size();
 
         // Thống kê Analytics
         List<Object[]> genreStats = seriesDao.getViewsByGenre();
@@ -75,10 +86,18 @@ public class AdminServlet extends HttpServlet {
         for (int i = 0; i < genreStats.size(); i++) {
             Object[] row = genreStats.get(i);
             String genre = (row[0] == null) ? "Khác" : row[0].toString();
-            // Sử dụng Number để tránh ClassCastException (Integer vs Long vs BigDecimal)
             long views = (row[1] == null) ? 0 : ((Number) row[1]).longValue();
-            
-            labels.append("\"").append(genre.replace("\"", "\\\"")).append("\"");
+
+            // Escape for JavaScript: quotes, backslashes, newlines
+            String escapedGenre = genre
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "")
+                .replace("<", "\\u003c")
+                .replace(">", "\\u003e");
+
+            labels.append("\"").append(escapedGenre).append("\"");
             data.append(views);
             if (i < genreStats.size() - 1) {
                 labels.append(","); data.append(",");
@@ -92,6 +111,8 @@ public class AdminServlet extends HttpServlet {
         req.setAttribute("categoryList", categoryList);
         req.setAttribute("totalVideos", totalVideos);
         req.setAttribute("totalUsers", totalUsers);
+        req.setAttribute("totalUserPages", (int) Math.ceil((double) totalUsers / PAGE_SIZE));
+        req.setAttribute("currentUserPage", userPage);
         req.setAttribute("totalPages", (int) Math.ceil((double) totalVideos / PAGE_SIZE));
         req.setAttribute("currentPage", page);
         req.setAttribute("sortBy", sortBy);
@@ -111,7 +132,7 @@ public class AdminServlet extends HttpServlet {
         String uri = req.getRequestURI();
 
         // Chặn các thao tác xóa qua GET để bảo mật
-        if (uri.contains("/delete") || uri.contains("/role")) {
+        if (uri.contains("/delete") || uri.contains("/role") || uri.contains("/premium")) {
             resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Thao tác này yêu cầu phương thức POST để đảm bảo bảo mật.");
             return;
         }
@@ -133,6 +154,8 @@ public class AdminServlet extends HttpServlet {
                 handleUpdateVideo(req, resp);
             } else if (uri.contains("/admin/video/delete")) {
                 handleDeleteVideo(req, resp);
+            } else if (uri.contains("/admin/users/premium")) {
+                handleTogglePremium(req, resp);
             } else if (uri.contains("/admin/users/role")) {
                 handleUpdateRole(req, resp);
             } else if (uri.contains("/admin/categories/create")) {
@@ -143,7 +166,7 @@ public class AdminServlet extends HttpServlet {
                 handleDeleteCategory(req, resp);
             }
         } catch (Exception e) {
-            req.setAttribute("error", "Lỗi xử lý: " + e.getMessage());
+            req.setAttribute("error", "Đã xảy ra lỗi khi xử lý. Vui lòng thử lại.");
             loadDashboardData(req);
             req.getRequestDispatcher("/views/admin.jsp").forward(req, resp);
         }
@@ -163,19 +186,25 @@ public class AdminServlet extends HttpServlet {
     }
 
     private void handleUpdateVideo(HttpServletRequest req, HttpServletResponse resp) throws Exception {
-        Long id = Long.parseLong(req.getParameter("id"));
+        Long id = ParamUtil.getLong(req, "id", -1);
+        if (id < 1) {
+            throw new RuntimeException("ID phim không hợp lệ.");
+        }
         Series s = seriesDao.findById(id);
         if (s != null) {
             s.setTitle(req.getParameter("title"));
             s.setDescription(req.getParameter("description"));
             s.setPoster(req.getParameter("poster"));
-            s.setYear(Integer.parseInt(req.getParameter("year")));
+            s.setYear(ParamUtil.getInt(req, "year", 2024));
             s.setDirector(req.getParameter("director"));
             s.setActors(req.getParameter("actors"));
             s.setGenre(req.getParameter("genre"));
             String catId = req.getParameter("categoryId");
             if (catId != null && !catId.isEmpty()) {
-                s.setCategory(categoryDAO.findById(Long.parseLong(catId)));
+                Long catIdLong = ParamUtil.getLong(req, "categoryId", -1);
+                if (catIdLong > 0) {
+                    s.setCategory(categoryDAO.findById(catIdLong));
+                }
             }
             s.setActive("on".equals(req.getParameter("active")));
             seriesDao.update(s);
@@ -184,7 +213,10 @@ public class AdminServlet extends HttpServlet {
     }
 
     private void handleDeleteVideo(HttpServletRequest req, HttpServletResponse resp) throws Exception {
-        Long id = Long.parseLong(req.getParameter("id"));
+        Long id = ParamUtil.getLong(req, "id", -1);
+        if (id < 1) {
+            throw new RuntimeException("ID phim không hợp lệ.");
+        }
         seriesDao.delete(id);
         resp.sendRedirect(req.getContextPath() + "/admin/video");
     }
@@ -204,20 +236,23 @@ public class AdminServlet extends HttpServlet {
         cat.setName(req.getParameter("name"));
         cat.setSlug(req.getParameter("slug"));
         cat.setDescription(req.getParameter("description"));
-        cat.setOrder(Integer.parseInt(req.getParameter("order")));
+        cat.setOrder(ParamUtil.getInt(req, "order", 0));
         cat.setActive("on".equals(req.getParameter("active")));
         categoryDAO.create(cat);
         resp.sendRedirect(req.getContextPath() + "/admin/categories?tab=category");
     }
 
     private void handleUpdateCategory(HttpServletRequest req, HttpServletResponse resp) throws Exception {
-        Long id = Long.parseLong(req.getParameter("id"));
+        Long id = ParamUtil.getLong(req, "id", -1);
+        if (id < 1) {
+            throw new RuntimeException("ID category không hợp lệ.");
+        }
         Category cat = categoryDAO.findById(id);
         if (cat != null) {
             cat.setName(req.getParameter("name"));
             cat.setSlug(req.getParameter("slug"));
             cat.setDescription(req.getParameter("description"));
-            cat.setOrder(Integer.parseInt(req.getParameter("order")));
+            cat.setOrder(ParamUtil.getInt(req, "order", 0));
             cat.setActive("on".equals(req.getParameter("active")));
             categoryDAO.update(cat);
         }
@@ -225,8 +260,21 @@ public class AdminServlet extends HttpServlet {
     }
 
     private void handleDeleteCategory(HttpServletRequest req, HttpServletResponse resp) throws Exception {
-        Long id = Long.parseLong(req.getParameter("id"));
+        Long id = ParamUtil.getLong(req, "id", -1);
+        if (id < 1) {
+            throw new RuntimeException("ID category không hợp lệ.");
+        }
         categoryDAO.delete(id);
         resp.sendRedirect(req.getContextPath() + "/admin/categories?tab=category");
+    }
+
+    private void handleTogglePremium(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+        String id = req.getParameter("id");
+        User u = userDAO.findById(id);
+        if (u != null) {
+            u.setPremium(!Boolean.TRUE.equals(u.getPremium()));
+            userDAO.update(u);
+        }
+        resp.sendRedirect(req.getContextPath() + "/admin/users?tab=users");
     }
 }

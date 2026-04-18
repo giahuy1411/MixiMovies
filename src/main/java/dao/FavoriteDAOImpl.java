@@ -16,6 +16,11 @@ public class FavoriteDAOImpl implements FavoriteDAO {
 			em.getTransaction().begin();
 			em.persist(f);
 			em.getTransaction().commit();
+		} catch (Exception e) {
+			if (em.getTransaction().isActive()) {
+				em.getTransaction().rollback();
+			}
+			throw e;
 		} finally {
 			em.close();
 		}
