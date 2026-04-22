@@ -40,14 +40,14 @@ public class ShareServlet extends HttpServlet {
 
         // Validate email format
         if (!emailTo.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-            req.setAttribute("error", "Email không hợp lệ");
+            req.getSession().setAttribute("shareError", "Email không hợp lệ");
             resp.sendRedirect(req.getContextPath() + "/watch?id=" + seriesIdParam);
             return;
         }
 
         // Validate message length
         if (customMessage != null && customMessage.length() > 500) {
-            req.setAttribute("error", "Lời nhắn quá dài (tối đa 500 ký tự)");
+            req.getSession().setAttribute("shareError", "Lời nhắn quá dài (tối đa 500 ký tự)");
             resp.sendRedirect(req.getContextPath() + "/watch?id=" + seriesIdParam);
             return;
         }

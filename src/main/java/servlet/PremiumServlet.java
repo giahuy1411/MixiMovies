@@ -63,7 +63,7 @@ public class PremiumServlet extends HttpServlet {
             }
 
             String plan = req.getParameter("plan");
-            double amount = "year".equals(plan) ? 500000 : 50000;
+            double amount = "year".equals(plan) ? 20000 : 10000; // Phải khớp với doGet
             String orderCode = "MMXP" + user.getId();
 
             // Kiểm tra trạng thái thanh toán thực tế qua SePay API

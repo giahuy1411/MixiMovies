@@ -53,6 +53,13 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
+        // Kiểm tra tài khoản bị khóa
+        if (!Boolean.TRUE.equals(user.getActive())) {
+            req.setAttribute("error", "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
+            req.getRequestDispatcher("/views/login.jsp").forward(req, resp);
+            return;
+        }
+
         HttpSession session = req.getSession(true);
         req.changeSessionId();
         session.setAttribute(utils.AuthUtil.SESSION_USER_KEY, user);
@@ -60,17 +67,21 @@ public class LoginServlet extends HttpServlet {
         String redirectUrl = (String) session.getAttribute("redirectAfterLogin");
         String securityUri = (String) session.getAttribute("securityUri");
 
-        if (redirectUrl != null) {
+        if (redirectUrl != null && isValidRedirect(redirectUrl)) {
             session.removeAttribute("redirectAfterLogin");
             resp.sendRedirect(req.getContextPath() + "/" + redirectUrl);
         } else if (securityUri != null) {
             session.removeAttribute("securityUri");
-            // securityUri từ filter thường đã có sẵn prefix "/...",
-            // tuy nhiên tuỳ cách redirect ở filter. AuthFilter dùng req.getServletPath(). 
-            // Ta cần prepend context path.
             resp.sendRedirect(req.getContextPath() + securityUri);
         } else {
             resp.sendRedirect(req.getContextPath() + "/home");
         }
+    }
+
+    /**
+     * Kiểm tra redirect URL hợp lệ (chỉ cho phép đường dẫn nội bộ, không chứa ://)
+     */
+    private boolean isValidRedirect(String url) {
+        return url != null && !url.contains("://") && !url.startsWith("//");
     }
 }

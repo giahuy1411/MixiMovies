@@ -25,7 +25,6 @@ utils\SePayUtil.class
 servlet\LogoutServlet.class
 utils\Mailer.class
 servlet\AuthFilter.class
-filter\UTF8Filter.class
 utils\CsrfUtil.class
 servlet\PremiumServlet.class
 servlet\ShareServlet.class

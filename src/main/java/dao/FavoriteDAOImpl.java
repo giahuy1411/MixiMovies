@@ -46,7 +46,9 @@ public class FavoriteDAOImpl implements FavoriteDAO {
 					.setParameter("uid", userId).setParameter("sid", seriesId).executeUpdate();
 			em.getTransaction().commit();
 		} catch (Exception e) {
-			em.getTransaction().rollback();
+			if (em.getTransaction().isActive()) {
+				em.getTransaction().rollback();
+			}
 			throw e;
 		} finally {
 			em.close();
