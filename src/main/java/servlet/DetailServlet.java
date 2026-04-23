@@ -82,7 +82,7 @@ public class DetailServlet extends HttpServlet {
         if (series.getCreatedAt() != null) {
             long diffMs = System.currentTimeMillis() - series.getCreatedAt().getTime();
             long diffDays = diffMs / (1000 * 60 * 60 * 24);
-            isNewMovie = diffDays < 10;
+            isNewMovie = diffDays < 1;
 
             if (isNewMovie) {
                 boolean isAdmin = user != null && Boolean.TRUE.equals(user.getAdmin());

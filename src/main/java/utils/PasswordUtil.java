@@ -12,7 +12,7 @@ public class PasswordUtil {
     public static String hash(String plainText) {
         return hash(plainText, generateSalt());
     }
-
+    
     public static String hash(String plainText, String salt) {
         try {
             String salted = salt + plainText;

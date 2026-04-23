@@ -103,8 +103,7 @@ public class AuthFilter implements Filter {
                path.startsWith("/favorite") || 
                path.startsWith("/addcomment") || 
                path.startsWith("/share") ||
-               path.startsWith("/like") ||
-               path.startsWith("/reset-password");
+               path.startsWith("/like");
     }
 
     private void redirectToLogin(HttpServletRequest req, HttpServletResponse resp, String uri) throws IOException {

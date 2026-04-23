@@ -202,6 +202,14 @@
             border-radius: 4px; display: flex; align-items: center; gap: 4px;
         }
 
+        .free-card-badge {
+            position: absolute; top: 10px; right: 10px;
+            background: #ff0000; color: #000;
+            font-size: 0.68rem; font-weight: 800; padding: 3px 10px;
+            border-radius: 4px; letter-spacing: 0.5px;
+            z-index: 2;
+        }
+
         .card-info {
             padding: 12px 14px 14px;
         }
@@ -331,6 +339,7 @@
         </c:if>
     </div>
 
+    <jsp:useBean id="now" class="java.util.Date" />
     <div class="movie-grid" id="movieGrid">
         <c:forEach var="series" items="${seriesList}">
             <a href="${pageContext.request.contextPath}/watch?id=${series.id}" class="movie-card"
@@ -339,10 +348,14 @@
                     <img src="${series.poster != 'N/A' && !empty series.poster ? series.poster : 'https://via.placeholder.com/200x300/1a1a24/666?text=No+Poster'}"
                          alt="${series.title}" loading="lazy">
                     <div class="card-badge">${series.type == 'tv' ? 'TV' : 'HD'}</div>
-                    <jsp:useBean id="now" class="java.util.Date" />
-                    <c:if test="${not empty series.createdAt && (now.time - series.createdAt.time) / (1000*60*60*24) < 10}">
-                        <div class="premium-card-badge"><i class="fas fa-crown"></i> PREMIUM</div>
-                    </c:if>
+                    <c:choose>
+                        <c:when test="${not empty series.createdAt && (now.time - series.createdAt.time) / (1000*60*60*24) < 1}">
+                            <div class="premium-card-badge"><i class="fas fa-crown"></i> PREMIUM</div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="free-card-badge">FREE</div>
+                        </c:otherwise>
+                    </c:choose>
                     <div class="card-overlay">
                         <div class="card-play">
                             <i class="fas fa-play"></i>

@@ -564,8 +564,12 @@
                                         <div class="action-btns" style="justify-content:flex-end;">
                                             <c:if test="${u.id != sessionScope.user.id}">
                                                 <button class="btn-edit" style="background:rgba(124,58,237,0.1); border-color:rgba(124,58,237,0.2);"
-                                                        onclick="submitAction('user/role', '${u.id}', 'Thay đổi quyền của người dùng này?')">
+                                                        onclick="submitAction('users/role', '${u.id}', 'Thay đổi quyền của người dùng này?')">
                                                     <i class="fas fa-user-shield"></i> Quyền
+                                                </button>
+                                                <button class="btn-edit" style="background:rgba(245,197,24,0.1); border-color:rgba(245,197,24,0.3); color:var(--gold);"
+                                                        onclick="submitAction('users/premium', '${u.id}', 'Thay đổi trạng thái Premium của người dùng này?')">
+                                                    <i class="fas fa-crown"></i> ${u.premium ? 'Hủy Premium' : 'Bật Premium'}
                                                 </button>
                                                 <c:choose>
                                                     <c:when test="${u.active}">

@@ -20,7 +20,8 @@ import java.util.Properties;
  */
 public class SePayUtil {
 
-    private static final String API_URL = "https://api.sepay.vn/v1/messages/list";
+    // API endpoint chính xác của SePay
+    private static final String API_URL = "https://my.sepay.vn/userapi/transactions/list";
 
     private static final String API_TOKEN;
     private static final String BANK_NUMBER;
@@ -61,23 +62,40 @@ public class SePayUtil {
     }
 
     /**
-     * Kiểm tra giao dịch thanh toán qua API SePay (Polling)
+     * Kiểm tra giao dịch thanh toán qua API SePay
      * 
-     * @param orderCode Mã đơn hàng cần tìm
-     * @param amount    Số tiền mong đợi
-     * @return true nếu tìm thấy giao dịch thành công khớp với mã đơn hàng và số
-     *         tiền
+     * Endpoint: GET https://my.sepay.vn/userapi/transactions/list
+     * Response format:
+     * {
+     *   "status": 200,
+     *   "transactions": [
+     *     {
+     *       "id": "...",
+     *       "transaction_content": "MMXP admin",
+     *       "transferAmount": 10000,
+     *       "amount_in": "10000.00",
+     *       "amount_out": "0.00",
+     *       ...
+     *     }
+     *   ]
+     * }
      */
     public static boolean checkPaymentStatus(String orderCode, double amount) {
         try {
-            URL url = new URL(API_URL + "?limit=20"); // Lấy 20 giao dịch gần nhất
+            // Gọi API lấy 20 giao dịch gần nhất, lọc theo số tiền vào
+            URL url = new URL(API_URL + "?limit=20&amount_in=" + (long) amount);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Authorization", "Bearer " + API_TOKEN);
             conn.setRequestProperty("Content-Type", "application/json");
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(10000);
 
-            if (conn.getResponseCode() == 200) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            int responseCode = conn.getResponseCode();
+            System.out.println("[SePayUtil] API Response Code: " + responseCode);
+
+            if (responseCode == 200) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
                 StringBuilder response = new StringBuilder();
                 String inputLine;
                 while ((inputLine = in.readLine()) != null) {
@@ -85,26 +103,60 @@ public class SePayUtil {
                 }
                 in.close();
 
-                // Phân tích JSON
+                System.out.println("[SePayUtil] API Response: " + response.toString().substring(0, Math.min(500, response.length())));
+
+                // Phân tích JSON theo cấu trúc SePay thực tế
                 Gson gson = new Gson();
                 JsonObject jsonResponse = gson.fromJson(response.toString(), JsonObject.class);
-                if (jsonResponse.has("messages")) {
-                    JsonArray messages = jsonResponse.getAsJsonArray("messages");
-                    for (JsonElement element : messages) {
-                        JsonObject msg = element.getAsJsonObject();
-                        String content = msg.get("content").getAsString();
-                        double transferAmount = msg.get("amount_in").getAsDouble();
+                
+                if (jsonResponse.has("transactions") && jsonResponse.get("transactions").isJsonArray()) {
+                    JsonArray transactions = jsonResponse.getAsJsonArray("transactions");
+                    
+                    for (JsonElement element : transactions) {
+                        JsonObject tx = element.getAsJsonObject();
+                        
+                        // Lấy nội dung chuyển khoản
+                        String content = "";
+                        if (tx.has("transaction_content") && !tx.get("transaction_content").isJsonNull()) {
+                            content = tx.get("transaction_content").getAsString();
+                        }
+                        
+                        // Lấy số tiền vào (có 2 field: transferAmount hoặc amount_in)
+                        double transferAmount = 0;
+                        if (tx.has("transferAmount") && !tx.get("transferAmount").isJsonNull()) {
+                            transferAmount = tx.get("transferAmount").getAsDouble();
+                        } else if (tx.has("amount_in") && !tx.get("amount_in").isJsonNull()) {
+                            try {
+                                transferAmount = Double.parseDouble(tx.get("amount_in").getAsString());
+                            } catch (NumberFormatException ignored) {}
+                        }
+
+                        System.out.println("[SePayUtil] Checking tx: content='" + content + "', amount=" + transferAmount);
 
                         // Kiểm tra nếu nội dung chứa mã đơn hàng và số tiền khớp
                         if (content.toUpperCase().contains(orderCode.toUpperCase()) && transferAmount >= amount) {
+                            System.out.println("[SePayUtil] ✅ Payment MATCHED! orderCode=" + orderCode);
                             return true;
                         }
                     }
                 }
+            } else {
+                // Đọc error response
+                BufferedReader err = new BufferedReader(new InputStreamReader(conn.getErrorStream(), StandardCharsets.UTF_8));
+                StringBuilder errResponse = new StringBuilder();
+                String line;
+                while ((line = err.readLine()) != null) {
+                    errResponse.append(line);
+                }
+                err.close();
+                System.out.println("[SePayUtil] API Error: " + errResponse.toString());
             }
         } catch (Exception e) {
             System.out.println("[SePayUtil] Payment check failed: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            e.printStackTrace();
         }
+        System.out.println("[SePayUtil] ❌ No matching payment found for orderCode=" + orderCode + ", amount=" + amount);
         return false;
     }
 }
+
