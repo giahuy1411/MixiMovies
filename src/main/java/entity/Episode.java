@@ -19,6 +19,7 @@ public class Episode {
     @Column(name = "EpisodeNumber")
     private Integer episodeNumber;
 
+    @Column(name = "Title", columnDefinition = "NVARCHAR(255)")
     private String title;
 
     @Column(name = "VideoUrl", nullable = false, columnDefinition = "NVARCHAR(MAX)")

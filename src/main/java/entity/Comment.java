@@ -17,10 +17,10 @@ public class Comment {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "SeriesId", nullable = false) // đổi từ VideoId
+    @JoinColumn(name = "SeriesId", nullable = false)
     private Series series;
 
-    @Column(name = "Content", nullable = false, length = 2000)
+    @Column(name = "Content", nullable = false, columnDefinition = "NVARCHAR(2000)")
     private String content;
 
     @Temporal(TemporalType.TIMESTAMP)

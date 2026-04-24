@@ -19,7 +19,7 @@ public class Share {
     @JoinColumn(name = "SeriesId", nullable = false) // đổi từ VideoId
     private Series series;
 
-    @Column(name = "Emails")
+    @Column(name = "Emails", columnDefinition = "NVARCHAR(500)")
     private String emails;
 
     @Temporal(TemporalType.DATE)

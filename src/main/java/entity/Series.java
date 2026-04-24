@@ -12,7 +12,7 @@ public class Series {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "Slug", unique = true, nullable = false, columnDefinition = "VARCHAR(255)")
     private String slug;
 
     @Column(name = "Title", nullable = false, columnDefinition = "NVARCHAR(255)")
@@ -29,12 +29,20 @@ public class Series {
     private String actors;
     @Column(name = "Genre", columnDefinition = "NVARCHAR(MAX)")
     private String genre;
+    @Column(name = "Type", columnDefinition = "VARCHAR(20)")
     private String type; // "movie" hoặc "tv"
+
+    @Column(name = "TmdbId")
     private Integer tmdbId;
+
+    @Column(name = "Views")
     private Integer views = 0;
+
+    @Column(name = "Active")
     private Boolean active = true;
 
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "CreatedAt")
     private Date createdAt = new Date();
 
     @OneToMany(mappedBy = "series", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
